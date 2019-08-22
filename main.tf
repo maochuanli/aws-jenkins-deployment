@@ -20,6 +20,23 @@ resource "aws_subnet" "private_subnet" {
   map_public_ip_on_launch = false
 }
 
+//public subnet route table
+resource "aws_route_table" "public_route_table" {
+  vpc_id = "${var.vpc_id}"
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = "igw-083e0b7948ddc301b"
+  }
+ #tag {
+ #   Name = "${var.vpc_prefix}-public-subnet"
+ # }
+}
+resource "aws_route_table_association" "subnet-association" {
+  subnet_id      = "${aws_subnet.public_subnet.id}"
+  route_table_id = "${aws_route_table.public_route_table.id}"
+}
+
+
 # Our default security group to access
 # the instances over SSH and HTTP
 resource "aws_security_group" "default" {
@@ -60,15 +77,38 @@ resource "aws_security_group" "default" {
   }
 }
 
+# the instances over SSH and HTTP
+resource "aws_security_group" "slave" {
+  name        = "slave-security-group"
+  description = "Used in the private subnet"
+  vpc_id      = "${var.vpc_id}"
+
+  # HTTPS access from the VPC
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "tcp"
+    cidr_blocks = ["${var.vpc_cidr}"]
+  }
+
+  # outbound internet access
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
 
 resource "aws_instance" "web" {
   # The connection block tells our provisioner how to
   # communicate with the resource (instance)
   connection {
     # The default username for our AMI
-    user = "ec2-ser"
+    user = "ec2-user"
+    agent = false
     host = "${self.public_ip}"
-    # The connection will use the local SSH agent for authentication.
+    private_key = "${file("~/.ssh/id_rsa")}"
   }
 
   instance_type = "t2.micro"
@@ -119,4 +159,8 @@ DATA
 
 output "address" {
   value = "${aws_instance.web.public_ip}"
+}
+
+output "private_subnet_id" {
+  value = "${aws_subnet.private_subnet.id}"
 }
