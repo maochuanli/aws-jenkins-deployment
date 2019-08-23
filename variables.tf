@@ -13,6 +13,11 @@ variable "key_name" {
   default = "mao_home_id_rsa"
 }
 
+variable "key_file_path" {
+  description = "Local file path for the private key"
+  default = "~/.ssh/id_rsa"
+}
+
 variable "aws_region" {
   description = "AWS region to launch servers."
   default     = "ap-southeast-2"
@@ -31,17 +36,12 @@ variable "aws_amis" {
 
 variable "vpc_prefix" {
   description = "To name all resource with this prefix"
-  default = "sandbox-jenkins-vpc"
+  default = "sandbox-jenkins"
 }
 
-variable "vpc_id" {
-  description = "The existing vpc id, created by ansible playbook"
-  default = "vpc-0e5a78df0da71cb8f"
-}
-
-variable "vpc_cidr" {
-  description = "the vpc cidr network"
-  default = "172.25.212.0/24"
+variable "jenkins_public_ip" {
+  description = "predefined public ip address for jenkins web server"
+  default = "3.105.10.240"
 }
 
 variable "public_subnet_cidr" {

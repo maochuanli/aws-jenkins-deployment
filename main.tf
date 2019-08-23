@@ -7,42 +7,110 @@ provider "aws" {
 # Create a subnet to launch our instances into
 resource "aws_subnet" "public_subnet" {
   #name = "${var.vpc_prefix}-public-subnet"
-  vpc_id                  = "${var.vpc_id}"
+  vpc_id                  = "${data.aws_cloudformation_stack.aviatrix.outputs["VPCId"]}"
   cidr_block              = "${var.public_subnet_cidr}"
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = false
+
+  tags = {
+    Name = "${var.vpc_prefix}-public-subnet"
+    Customer = "Qrious"
+    Environment = "prod"
+    Owner = "sre@qrious.co.nz"
+    Project = "Qrious Jenkins CI"
+  }
 }
 
 # Create a subnet to launch our slaves into
 resource "aws_subnet" "private_subnet" {
   #name = "${var.vpc_prefix}-private-subnet"
-  vpc_id                  = "${var.vpc_id}"
+  vpc_id                  = "${data.aws_cloudformation_stack.aviatrix.outputs["VPCId"]}"
   cidr_block              = "${var.private_subnet_cidr}"
   map_public_ip_on_launch = false
+  tags = {
+    Name = "${var.vpc_prefix}-private-subnet"
+    Customer = "Qrious"
+    Environment	= "prod"
+    Owner = "sre@qrious.co.nz"
+    Project = "Qrious Jenkins CI"
+  }
 }
 
 //public subnet route table
 resource "aws_route_table" "public_route_table" {
-  vpc_id = "${var.vpc_id}"
+  vpc_id = "${data.aws_cloudformation_stack.aviatrix.outputs["VPCId"]}"
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = "igw-083e0b7948ddc301b"
+    gateway_id = "${data.aws_cloudformation_stack.aviatrix.outputs["InternetGatewayId"]}"
   }
- #tag {
- #   Name = "${var.vpc_prefix}-public-subnet"
- # }
+
+  route {
+    cidr_block = "10.201.247.0/24"
+    network_interface_id = "${data.aws_cloudformation_stack.aviatrix.outputs["AviatrixENIId"]}"
+  }
+
+  tags = {
+    Name = "${var.vpc_prefix}-public-subnet-route-table"
+    Customer = "Qrious"
+    Environment	= "prod"
+    Owner = "sre@qrious.co.nz"
+    Project = "Qrious Jenkins CI"
+  }
+
 }
-resource "aws_route_table_association" "subnet-association" {
+resource "aws_route_table_association" "public_subnet_association" {
   subnet_id      = "${aws_subnet.public_subnet.id}"
   route_table_id = "${aws_route_table.public_route_table.id}"
 }
 
+resource "aws_eip" "nat" {
+  vpc = true
+}
+
+resource "aws_nat_gateway" "nat_gw" {
+  allocation_id = "${aws_eip.nat.id}"
+  subnet_id     = "${aws_subnet.public_subnet.id}"
+
+  tags = {
+    Name = "${var.vpc_prefix}-nat-gw"
+    Customer = "Qrious"
+    Environment	= "prod"
+    Owner = "sre@qrious.co.nz"
+    Project = "Qrious Jenkins CI"
+  }
+}
+
+//private subnet route table
+resource "aws_route_table" "private_route_table" {
+  vpc_id = "${data.aws_cloudformation_stack.aviatrix.outputs["VPCId"]}"
+  route {
+    cidr_block = "0.0.0.0/0"
+    nat_gateway_id = "${aws_nat_gateway.nat_gw.id}"
+  }
+
+  route {
+    cidr_block = "10.201.247.0/24"
+    network_interface_id = "${data.aws_cloudformation_stack.aviatrix.outputs["AviatrixENIId"]}"
+  }
+
+  tags = {
+    Name = "${var.vpc_prefix}-private-subnet-route-table"
+    Customer = "Qrious"
+    Environment	= "prod"
+    Owner = "sre@qrious.co.nz"
+    Project = "Qrious Jenkins CI"
+  }
+}
+resource "aws_route_table_association" "private_subnet_association" {
+  subnet_id      = "${aws_subnet.private_subnet.id}"
+  route_table_id = "${aws_route_table.private_route_table.id}"
+}
 
 # Our default security group to access
 # the instances over SSH and HTTP
-resource "aws_security_group" "default" {
-  name        = "webserver-security-group"
+resource "aws_security_group" "master" {
+  name        = "jenkins-master-security-group"
   description = "Used in the terraform"
-  vpc_id      = "${var.vpc_id}"
+  vpc_id      = "${data.aws_cloudformation_stack.aviatrix.outputs["VPCId"]}"
 
   # SSH access from anywhere
   ingress {
@@ -57,12 +125,13 @@ resource "aws_security_group" "default" {
     from_port   = 8080
     to_port     = 8080
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${data.aws_cloudformation_stack.aviatrix.outputs["VPCCidrBlock"]}"]
   }
 
   # HTTPS access from the VPC
   ingress {
     from_port   = 443
+
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
@@ -79,16 +148,24 @@ resource "aws_security_group" "default" {
 
 # the instances over SSH and HTTP
 resource "aws_security_group" "slave" {
-  name        = "slave-security-group"
+  name        = "jenkins-slave-security-group"
   description = "Used in the private subnet"
-  vpc_id      = "${var.vpc_id}"
+  vpc_id      = "${data.aws_cloudformation_stack.aviatrix.outputs["VPCId"]}"
 
   # HTTPS access from the VPC
   ingress {
     from_port   = 0
     to_port     = 0
     protocol    = "tcp"
-    cidr_blocks = ["${var.vpc_cidr}"]
+    cidr_blocks = ["${data.aws_cloudformation_stack.aviatrix.outputs["VPCCidrBlock"]}"]
+  }
+
+  # SSH access from anywhere
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   # outbound internet access
@@ -100,16 +177,7 @@ resource "aws_security_group" "slave" {
   }
 }
 
-resource "aws_instance" "web" {
-  # The connection block tells our provisioner how to
-  # communicate with the resource (instance)
-  connection {
-    # The default username for our AMI
-    user = "ec2-user"
-    agent = false
-    host = "${self.public_ip}"
-    private_key = "${file("~/.ssh/id_rsa")}"
-  }
+resource "aws_instance" "jenkins" {
 
   instance_type = "t2.micro"
 
@@ -121,15 +189,21 @@ resource "aws_instance" "web" {
   key_name = "${var.key_name}"
 
   # Our Security group to allow HTTP and SSH access
-  vpc_security_group_ids = ["${aws_security_group.default.id}"]
+  vpc_security_group_ids = ["${aws_security_group.master.id}"]
 
   # We're going to launch into the same subnet as our ELB. In a production
   # environment it's more common to have a separate private subnet for
   # backend instances.
   subnet_id = "${aws_subnet.public_subnet.id}"
+  iam_instance_profile = "${aws_iam_instance_profile.master_instance_profile.id}"
 
   tags = {
-    Name = "HelloWorld"
+    Name = "${var.vpc_prefix}-jenkins-master"
+    Customer = "Qrious"
+    Environment = "prod"
+    Owner = "sre@qrious.co.nz"
+    Project = "Qrious Jenkins CI"
+    Downtime = "default"
   }
 
   user_data = <<DATA
@@ -144,21 +218,31 @@ usermod -aG docker ec2-user
 
 DATA
 
-  # We run a remote provisioner on the instance after creating it.
-  # In this case, we just install nginx and start it. By default,
-  # this should be on port 80
-  provisioner "remote-exec" {
-    inline = [
-      "whoami",
-      "pwd"
-      
-      
-    ]
-  }
 }
 
-output "address" {
-  value = "${aws_instance.web.public_ip}"
+resource "aws_eip_association" "eip_assoc" {
+  instance_id   = "${aws_instance.jenkins.id}"
+  allocation_id = "${data.aws_eip.jenkins_public_ip.id}"
+}
+
+resource "null_resource" "config" {
+  # The connection block tells our provisioner how to
+  # communicate with the resource (instance)
+  connection {
+    # The default username for our AMI
+    user = "ec2-user"
+    agent = false
+    host = "${data.aws_eip.jenkins_public_ip.public_ip}"
+    private_key = "${file(var.key_file_path)}"
+  }
+
+  provisioner "remote-exec" {
+    # Bootstrap script called with private_ip of each node in the cluster
+    inline = [
+      "echo who am i: `whoami`",
+      "echo current DIR: `pwd`"
+    ]
+  }
 }
 
 output "private_subnet_id" {
