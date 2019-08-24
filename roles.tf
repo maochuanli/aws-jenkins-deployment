@@ -17,6 +17,10 @@ resource "aws_iam_role" "slave_role" {
   name = "jenkins_slave_role"
   path               = "/jenkins/"
   assume_role_policy = "${data.aws_iam_policy_document.instance-assume-role-policy.json}"
+
+  tags = {
+    Name  = "jenkins_slave_role"
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "admin-role-policy-attach" {
@@ -69,7 +73,7 @@ resource "aws_iam_role" "master_role" {
   assume_role_policy = "${data.aws_iam_policy_document.instance-assume-role-policy.json}"
 
   tags = {
-    tag-key = "tag-value"
+    Name  = "jenkins_master_role"
   }
 }
 
@@ -83,3 +87,7 @@ resource "aws_iam_instance_profile" "master_instance_profile" {
   role = "${aws_iam_role.master_role.name}"
 }
 
+resource "aws_iam_instance_profile" "slave_instance_profile" {
+  name = "slave_instance_profile"
+  role = "${aws_iam_role.slave_role.name}"
+}

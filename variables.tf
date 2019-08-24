@@ -27,21 +27,18 @@ variable "aws_profile" {
   default = "sandbox"
 }
 
-# Amazon Linux 2 comes with five years support. 
+# Amazon Linux 2 comes with five years support.
+# Debian-9 Stretch Market place AMI  
 variable "aws_amis" {
   default = {
-    ap-southeast-2 = "ami-0dc96254d5535925f"
+    #ap-southeast-2 = "ami-0dc96254d5535925f"
+    ap-southeast-2 = "ami-00a5fc80ec944398f"
   }
 }
 
 variable "vpc_prefix" {
   description = "To name all resource with this prefix"
   default = "sandbox-jenkins"
-}
-
-variable "jenkins_public_ip" {
-  description = "predefined public ip address for jenkins web server"
-  default = "3.105.10.240"
 }
 
 variable "public_subnet_cidr" {

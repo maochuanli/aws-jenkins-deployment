@@ -1,3 +1,4 @@
+
 # Specify the provider and access details
 provider "aws" {
   region = "${var.aws_region}"
@@ -60,10 +61,6 @@ resource "aws_route_table" "public_route_table" {
 resource "aws_route_table_association" "public_subnet_association" {
   subnet_id      = "${aws_subnet.public_subnet.id}"
   route_table_id = "${aws_route_table.public_route_table.id}"
-}
-
-resource "aws_eip" "nat" {
-  vpc = true
 }
 
 resource "aws_nat_gateway" "nat_gw" {
@@ -208,13 +205,8 @@ resource "aws_instance" "jenkins" {
 
   user_data = <<DATA
 #!/bin/bash
-yum update -y
-yum -y install nginx docker
-systemctl enable nginx
-systemctl enable docker
-systemctl start nginx
-systemctl start docker
-usermod -aG docker ec2-user
+touch /root/init.txt
+
 
 DATA
 
@@ -222,7 +214,7 @@ DATA
 
 resource "aws_eip_association" "eip_assoc" {
   instance_id   = "${aws_instance.jenkins.id}"
-  allocation_id = "${data.aws_eip.jenkins_public_ip.id}"
+  allocation_id = "${aws_eip.jenkins.id}"
 }
 
 resource "null_resource" "config" {
@@ -230,21 +222,34 @@ resource "null_resource" "config" {
   # communicate with the resource (instance)
   connection {
     # The default username for our AMI
-    user = "ec2-user"
+    user = "admin"
     agent = false
-    host = "${data.aws_eip.jenkins_public_ip.public_ip}"
+    host = "${aws_eip.jenkins.public_ip}"
     private_key = "${file(var.key_file_path)}"
   }
-
+  depends_on = ["aws_eip_association.eip_assoc"]
   provisioner "remote-exec" {
     # Bootstrap script called with private_ip of each node in the cluster
     inline = [
       "echo who am i: `whoami`",
-      "echo current DIR: `pwd`"
+      "echo current DIR: `pwd`",
+      "echo docker run -it --rm hello-world"
     ]
   }
 }
 
 output "private_subnet_id" {
   value = "${aws_subnet.private_subnet.id}"
+}
+
+resource "local_file" "ansible-config" {
+    content = <<DATA
+---
+jenkins_public_ip: ${aws_eip.jenkins.public_ip}
+aws_profile: default
+private_subnet_id: ${aws_subnet.private_subnet.id}
+sandbox_ns_servers: ${join(",", aws_route53_zone.sandbox.name_servers)}
+
+DATA
+    filename = "${path.module}/ansible.config.yml"
 }
