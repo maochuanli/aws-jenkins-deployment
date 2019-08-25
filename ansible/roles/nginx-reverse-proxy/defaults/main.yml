@@ -1,0 +1,10 @@
+---
+nginx_site_root: ''
+nginx_site_name: 'jenkins-site'
+nginx_site_server_name: 'jenkins.sandbox.qrious.co.nz'
+nginx_site_server_alias: []
+nginx_site_ssl_port: 443
+nginx_site_ca_cert: []
+nginx_site_upstream_host: 'localhost'
+nginx_site_upstream_port: '8080'
+

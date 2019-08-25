@@ -251,5 +251,5 @@ private_subnet_id: ${aws_subnet.private_subnet.id}
 sandbox_ns_servers: ${join(",", aws_route53_zone.sandbox.name_servers)}
 
 DATA
-    filename = "${path.module}/ansible.config.yml"
+    filename = "${path.module}/ansible/ansible.config.yml"
 }

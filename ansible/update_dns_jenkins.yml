@@ -19,7 +19,7 @@
   tasks:
     - name: Add instance to master group
       add_host:
-        hostname: jenkins
+        hostname: jenkins-master
         ansible_ssh_host: "{{ jenkins_public_ip }}"
         ansible_ssh_user: admin
         ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
@@ -43,9 +43,20 @@
         curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
         add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
         apt-get update
-        apt install -y docker-ce
+        apt install -y docker-ce certbot
         systemctl enable docker
-        systemctl start docker
         usermod -aG docker admin
       args:
         executable: /bin/bash
+    - name: acquire a certificate from let's encrypt
+      shell: |
+        certbot certonly --standalone -m sre@qrious.co.nz --agree-tos -n -d jenkins.sandbox.qrious.co.nz
+
+- name: Install and configure nginx server
+  hosts: jenkins
+  gather_facts: true
+  become: yes
+  roles:
+    - nginx-reverse-proxy
+
+

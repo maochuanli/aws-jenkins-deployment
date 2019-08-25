@@ -1,0 +1,19 @@
+- name: Create jenkins master group with it's public ip
+  hosts: localhost
+  tasks:
+    - name: Add instance to master group
+      add_host:
+        hostname: jenkins-master
+        ansible_ssh_host: "{{ jenkins_public_ip }}"
+        ansible_ssh_user: admin
+        ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
+        groups:
+          - jenkins
+
+- name: Install and configure nginx server
+  hosts: jenkins
+  gather_facts: true
+  become: yes
+  roles:
+    - nginx-reverse-proxy
+

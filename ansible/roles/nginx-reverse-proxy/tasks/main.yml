@@ -1,0 +1,28 @@
+---
+
+- name: install nginx
+  apt: pkg=nginx state=installed
+  tags: 
+    - nginx
+
+- name: install site
+  template: src=site.nginx.conf 
+            dest=/etc/nginx/sites-available/{{ nginx_site_name }}.conf
+  notify:
+    - restart nginx
+  tags: 
+    - nginx
+
+- name: delete all existing sites
+  shell: 
+    /bin/rm -rf /etc/nginx/sites-enabled/*  
+
+- name: enable site
+  file: src=/etc/nginx/sites-available/{{ nginx_site_name }}.conf
+        dest=/etc/nginx/sites-enabled/{{ nginx_site_name }}.conf
+        state=link
+  notify:
+    - restart nginx
+  tags: 
+    - nginx
+
