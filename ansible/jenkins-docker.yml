@@ -22,9 +22,20 @@
         state: directory
         mode: '0777'
 
+    - name: delete all files under /var/jenkins_home
+      command: 
+        rm -rf /var/jenkins_home/*
+      when: reset_docker == true 
+
     - name: install docker-py
       pip:
         name: docker-py >= 1.7.0
+
+    - name: delete existing jenkins instance
+      docker_container:
+        name: jenkins
+        state: absent
+      when: reset_docker == true
 
     - name: run docker with jenkins/jenkins:lts image
       docker_container:

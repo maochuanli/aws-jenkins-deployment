@@ -83,7 +83,7 @@ resource "aws_iam_role_policy_attachment" "attach_master_role_policy" {
 }
 
 resource "aws_iam_instance_profile" "master_instance_profile" {
-  name = "master_instance_profile"
+  name = "master_instance_profile_${var.env}"
   role = "${aws_iam_role.master_role.name}"
 }
 

@@ -1,5 +1,5 @@
-env = prod
-key_name = jenkins-key-prod
+env = "prod"
+key_name = "jenkins-key-prod"
 public_subnet_cidr = "172.25.212.0/27"
 private_subnet_cidr = "172.25.212.32/27"
 

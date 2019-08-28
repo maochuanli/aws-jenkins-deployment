@@ -1,0 +1,7 @@
+---
+jenkins_public_ip: 13.55.18.158
+jenkins_dns_name: jenkins-prod.sandbox.qrious.co.nz
+aws_profile: default
+private_subnet_id: subnet-01471e65142ad3798
+reset_docker: true
+

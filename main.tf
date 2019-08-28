@@ -256,6 +256,7 @@ jenkins_public_ip: ${aws_eip.jenkins.public_ip}
 jenkins_dns_name: ${ aws_route53_record.jenkins.name }
 aws_profile: default
 private_subnet_id: ${aws_subnet.private_subnet.id}
+reset_docker: false
 
 DATA
     filename = "${path.module}/ansible/${var.env}.ansible.config.yml"
