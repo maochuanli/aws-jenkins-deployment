@@ -14,7 +14,7 @@ data "aws_iam_policy" "admin_policy" {
 }
 
 resource "aws_iam_role" "slave_role" {
-  name = "jenkins_slave_role"
+  name = "jenkins_slave_role_${var.env}"
   path               = "/jenkins/"
   assume_role_policy = "${data.aws_iam_policy_document.instance-assume-role-policy.json}"
 
@@ -30,7 +30,7 @@ resource "aws_iam_role_policy_attachment" "admin-role-policy-attach" {
 
 
 resource "aws_iam_policy" "master_jenkins_policy" {
-  name        = "master_jenkins_policy"
+  name        = "master_jenkins_policy_${var.env}"
 
   policy = <<EOF
 {
@@ -68,7 +68,7 @@ EOF
 }
 
 resource "aws_iam_role" "master_role" {
-  name = "jenkins_master_role"
+  name = "jenkins_master_role_${var.env}"
   path               = "/jenkins/"
   assume_role_policy = "${data.aws_iam_policy_document.instance-assume-role-policy.json}"
 
@@ -88,6 +88,6 @@ resource "aws_iam_instance_profile" "master_instance_profile" {
 }
 
 resource "aws_iam_instance_profile" "slave_instance_profile" {
-  name = "slave_instance_profile"
+  name = "slave_instance_profile_${var.env}"
   role = "${aws_iam_role.slave_role.name}"
 }

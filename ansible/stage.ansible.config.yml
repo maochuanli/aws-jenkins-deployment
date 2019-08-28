@@ -1,0 +1,6 @@
+---
+jenkins_public_ip: 13.210.114.89
+jenkins_dns_name: jenkins-stage.sandbox.qrious.co.nz
+aws_profile: default
+private_subnet_id: subnet-004aad9d7ec52d724
+

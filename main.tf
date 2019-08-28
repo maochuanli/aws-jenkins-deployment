@@ -1,3 +1,6 @@
+terraform {
+  backend "s3" {}
+}
 
 # Specify the provider and access details
 provider "aws" {
@@ -5,17 +8,22 @@ provider "aws" {
   profile = "${var.aws_profile}"
 }
 
+resource "aws_key_pair" "ec2" {
+  key_name   = "${var.key_name}"
+  public_key = "${file(var.public_key_path)}"
+}
+
+
 # Create a subnet to launch our instances into
 resource "aws_subnet" "public_subnet" {
-  #name = "${var.vpc_prefix}-public-subnet"
   vpc_id                  = "${data.aws_cloudformation_stack.aviatrix.outputs["VPCId"]}"
   cidr_block              = "${var.public_subnet_cidr}"
   map_public_ip_on_launch = false
 
   tags = {
-    Name = "${var.vpc_prefix}-public-subnet"
+    Name = "${var.vpc_prefix}-${var.env}-public-subnet"
     Customer = "Qrious"
-    Environment = "prod"
+    Environment = "${var.env}"
     Owner = "sre@qrious.co.nz"
     Project = "Qrious Jenkins CI"
   }
@@ -23,14 +31,13 @@ resource "aws_subnet" "public_subnet" {
 
 # Create a subnet to launch our slaves into
 resource "aws_subnet" "private_subnet" {
-  #name = "${var.vpc_prefix}-private-subnet"
   vpc_id                  = "${data.aws_cloudformation_stack.aviatrix.outputs["VPCId"]}"
   cidr_block              = "${var.private_subnet_cidr}"
   map_public_ip_on_launch = false
   tags = {
-    Name = "${var.vpc_prefix}-private-subnet"
+    Name = "${var.vpc_prefix}-${var.env}-private-subnet"
     Customer = "Qrious"
-    Environment	= "prod"
+    Environment	= "${var.env}"
     Owner = "sre@qrious.co.nz"
     Project = "Qrious Jenkins CI"
   }
@@ -50,9 +57,9 @@ resource "aws_route_table" "public_route_table" {
   }
 
   tags = {
-    Name = "${var.vpc_prefix}-public-subnet-route-table"
+    Name = "${var.vpc_prefix}-${var.env}-public-subnet-route-table"
     Customer = "Qrious"
-    Environment	= "prod"
+    Environment	= "${var.env}"
     Owner = "sre@qrious.co.nz"
     Project = "Qrious Jenkins CI"
   }
@@ -68,9 +75,9 @@ resource "aws_nat_gateway" "nat_gw" {
   subnet_id     = "${aws_subnet.public_subnet.id}"
 
   tags = {
-    Name = "${var.vpc_prefix}-nat-gw"
+    Name = "${var.vpc_prefix}-${var.env}-nat-gw"
     Customer = "Qrious"
-    Environment	= "prod"
+    Environment	= "${var.env}"
     Owner = "sre@qrious.co.nz"
     Project = "Qrious Jenkins CI"
   }
@@ -90,7 +97,7 @@ resource "aws_route_table" "private_route_table" {
   }
 
   tags = {
-    Name = "${var.vpc_prefix}-private-subnet-route-table"
+    Name = "${var.vpc_prefix}-${var.env}-private-subnet-route-table"
     Customer = "Qrious"
     Environment	= "prod"
     Owner = "sre@qrious.co.nz"
@@ -105,7 +112,7 @@ resource "aws_route_table_association" "private_subnet_association" {
 # Our default security group to access
 # the instances over SSH and HTTP
 resource "aws_security_group" "master" {
-  name        = "jenkins-master-security-group"
+  name        = "jenkins-master-security-group-${var.env}"
   description = "Used in the terraform"
   vpc_id      = "${data.aws_cloudformation_stack.aviatrix.outputs["VPCId"]}"
 
@@ -119,10 +126,10 @@ resource "aws_security_group" "master" {
 
   # HTTP access from the VPC
   ingress {
-    from_port   = 8080
-    to_port     = 8080
+    from_port   = 80
+    to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["${data.aws_cloudformation_stack.aviatrix.outputs["VPCCidrBlock"]}"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   # HTTPS access from the VPC
@@ -145,7 +152,7 @@ resource "aws_security_group" "master" {
 
 # the instances over SSH and HTTP
 resource "aws_security_group" "slave" {
-  name        = "jenkins-slave-security-group"
+  name        = "jenkins-slave-security-group-${var.env}"
   description = "Used in the private subnet"
   vpc_id      = "${data.aws_cloudformation_stack.aviatrix.outputs["VPCId"]}"
 
@@ -195,9 +202,9 @@ resource "aws_instance" "jenkins" {
   iam_instance_profile = "${aws_iam_instance_profile.master_instance_profile.id}"
 
   tags = {
-    Name = "${var.vpc_prefix}-jenkins-master"
+    Name = "${var.vpc_prefix}-${var.env}-jenkins-master"
     Customer = "Qrious"
-    Environment = "prod"
+    Environment = "${var.env}"
     Owner = "sre@qrious.co.nz"
     Project = "Qrious Jenkins CI"
     Downtime = "default"
@@ -246,10 +253,10 @@ resource "local_file" "ansible-config" {
     content = <<DATA
 ---
 jenkins_public_ip: ${aws_eip.jenkins.public_ip}
+jenkins_dns_name: ${ aws_route53_record.jenkins.name }
 aws_profile: default
 private_subnet_id: ${aws_subnet.private_subnet.id}
-sandbox_ns_servers: ${join(",", aws_route53_zone.sandbox.name_servers)}
 
 DATA
-    filename = "${path.module}/ansible/ansible.config.yml"
+    filename = "${path.module}/ansible/${var.env}.ansible.config.yml"
 }

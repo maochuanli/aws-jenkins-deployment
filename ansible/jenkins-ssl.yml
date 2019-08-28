@@ -1,0 +1,69 @@
+---
+- name: Create jenkins master group with it's public ip
+  hosts: localhost
+  tasks:
+    - name: Add instance to master group
+      add_host:
+        hostname: jenkins-master
+        ansible_ssh_host: "{{ jenkins_public_ip }}"
+        ansible_ssh_user: admin
+        ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
+        groups:
+          - jenkins
+
+- name: Update jenkins VM
+  hosts: jenkins
+  gather_facts: true
+  become: yes
+  tasks:
+    - name: install docker
+      debug:
+        var: ansible_hostname
+
+    - name: install dependencies package
+      apt: 
+        name: ['apt-transport-https', 'ca-certificates','curl', 'software-properties-common','gnupg2', 'python-pip','certbot']
+        update_cache: yes
+
+    - name: install docker source
+      shell: |
+        curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+        add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
+      args:
+        executable: /bin/bash
+
+    - name: Install docker
+      apt:
+        name: docker-ce
+        update_cache: yes
+
+    - name: update docker service and user
+      shell: |
+        systemctl enable docker
+        usermod -aG docker admin
+      args:
+        executable: /bin/bash    
+
+    - name: Run certbot command to acquire a certificate
+      command:
+        certbot certonly --standalone -m sre.qrious@qrious.co.nz --agree-tos -n -d {{ jenkins_dns_name }}
+
+    - name: Rebooting ...
+      shell: sleep 3 && shutdown -r now
+      async: 1
+      poll: 0
+      ignore_errors: true
+
+    - name: Wait for system to become reachable again
+      wait_for_connection:
+        delay: 20
+        timeout: 300
+
+- name: Install and configure nginx server
+  hosts: jenkins
+  gather_facts: true
+  become: yes
+  roles:
+    - nginx-reverse-proxy
+
+

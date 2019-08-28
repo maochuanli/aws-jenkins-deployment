@@ -1,0 +1,85 @@
+- name: Create jenkins master group with it's public ip
+  hosts: localhost
+  tasks:
+    - name: Add instance to master group
+      add_host:
+        hostname: jenkins-master
+        ansible_ssh_host: "{{ jenkins_public_ip }}"
+        ansible_ssh_user: admin
+        ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
+        groups:
+          - jenkins
+
+
+- name: Run jenkins server inside docker
+  hosts: jenkins
+  gather_facts: true
+  tasks:
+    - name: create data directory for mount
+      become: true
+      file:
+        path: /var/jenkins_home
+        state: directory
+        mode: '0777'
+
+    - name: install docker-py
+      pip:
+        name: docker-py >= 1.7.0
+
+    - name: run docker with jenkins/jenkins:lts image
+      docker_container:
+        name: jenkins
+        privileged: yes
+        image: jenkins/jenkins:lts
+        state: started
+        restart_policy: always
+        ports: 
+          - "50000:50000"
+          - "127.0.0.1:8080:8080"
+        volumes:
+          - /var/jenkins_home:/var/jenkins_home
+
+    - name: Waits for port 8080
+      wait_for:
+        host: 127.0.0.1
+        port: 8080
+
+    - name: Wait until the file /tmp/foo is present before continuing
+      wait_for:
+        path: /var/jenkins_home/secrets/initialAdminPassword
+
+    - name: prepare password file
+      shell:
+        echo "admin:$(cat /var/jenkins_home/secrets/initialAdminPassword)" > /var/jenkins_home/admin.password
+
+    - name: create groovy script for new user
+      copy:
+        content: |
+          jenkins.model.Jenkins.instance.securityRealm.createAccount("sre.admin", "So5%6pli0RMLx*j")
+        dest: "/var/jenkins_home/createAdmin.groovy"
+
+    - name: create shell script for new user
+      copy:
+        content: |
+          java -jar /var/jenkins_home/war/WEB-INF/jenkins-cli.jar -s http://localhost:8080 -auth @/var/jenkins_home/admin.password groovy = < /var/jenkins_home/createAdmin.groovy
+        dest: "/var/jenkins_home/createAdmin.sh"
+        
+    - name: create admin user sre.admin
+      command:
+        docker exec -it jenkins /bin/bash /var/jenkins_home/createAdmin.sh
+      retries: 3
+      delay: 5
+      register: result
+      until: result.rc == 0
+
+    - name: install plugins
+      shell: |
+        docker exec -it jenkins java -jar /var/jenkins_home/war/WEB-INF/jenkins-cli.jar -s http://localhost:8080 -auth @/var/jenkins_home/admin.password  {{ item }}
+      loop:
+        - version
+        - install-plugin configuration-as-code
+        - install-plugin blueocean
+        - install-plugin bitbucket
+        - install-plugin ec2
+        - install-plugin amazon-ecs
+        - restart

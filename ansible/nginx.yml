@@ -10,10 +10,23 @@
         groups:
           - jenkins
 
-- name: Install and configure nginx server
+- name: Install and configure certbot
   hosts: jenkins
-  gather_facts: true
+  hosts: jenkins
   become: yes
+  tasks:
+    - name: Update repositories cache and install "pip" package
+      apt:
+        name: {{ item }}
+	update_cache: yes
+      loops:
+        - python-pip
+        - certbot
+
+    - name: Run certbot command to acquire a certificate
+      command: 
+        certbot certonly --standalone -m sre.qrious@qrious.co.nz --agree-tos -n -d {{ jenkins_dns_name }}
+
   roles:
     - nginx-reverse-proxy
 
