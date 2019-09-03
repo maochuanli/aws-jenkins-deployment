@@ -1,6 +1,0 @@
----
-jenkins_public_ip: 13.54.233.128
-aws_profile: default
-private_subnet_id: subnet-0fc7d5cb85f5b687a
-sandbox_ns_servers: ns-1371.awsdns-43.org,ns-1617.awsdns-10.co.uk,ns-451.awsdns-56.com,ns-858.awsdns-43.net
-

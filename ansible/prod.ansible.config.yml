@@ -1,11 +1,11 @@
 ---
-jenkins_public_ip: 13.55.18.158
+jenkins_public_ip: 3.24.83.47
 jenkins_dns_name: jenkins-prod.sandbox.qrious.co.nz
 aws_profile: default
 reset_docker: true
 #Default Debian custom image
 slave_ami_id: ami-027d1de841c24d55c
-slave_subnet_id: subnet-01471e65142ad3798
+slave_subnet_id: subnet-0f9aace8c7aa5694c
 slave_security_group_name: jenkins-slave-security-group-prod
 slave_private_key_file_path: ~/.ssh/id_rsa
 slave_instance_profile_arn: arn:aws:iam::587885198623:instance-profile/slave_instance_profile_prod

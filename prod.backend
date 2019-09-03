@@ -1,5 +1,0 @@
-key    = "Qrious-Jenkins-Project/prod.terraform.tfstate"
-profile = "mgmt"
-bucket = "terraform.state.files.qrious.co.nz"
-region = "ap-southeast-2"
-dynamodb_table = "Terraform-State-Lock-Table"

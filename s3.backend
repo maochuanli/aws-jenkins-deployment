@@ -1,5 +1,6 @@
-key    = "Qrious-Jenkins-Project/stage.terraform.tfstate"
+key    = "terraform.tfstate"
 profile = "mgmt"
 bucket = "terraform.state.files.qrious.co.nz"
 region = "ap-southeast-2"
 dynamodb_table = "Terraform-State-Lock-Table"
+workspace_key_prefix = "Qrious-Jenkins-Project"
