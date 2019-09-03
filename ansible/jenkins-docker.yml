@@ -36,7 +36,7 @@
       when: reset_docker == true
 
     - name: delete all files under /var/jenkins_home
-      command:
+      shell:
         rm -rf /var/jenkins_home/*
       when: reset_docker == true
 
@@ -54,7 +54,8 @@
           - /var/jenkins_home:/var/jenkins_home
         env:
           JENKINS_DNS_NAME: "{{jenkins_dns_name}}"
-          JAVA_OPTS: -Djenkins.install.runSetupWizard=false
+
+#          JAVA_OPTS: -Djenkins.install.runSetupWizard=true
 
     - name: Waits for port 8080
       wait_for:
@@ -73,7 +74,7 @@
       command:
         docker exec -it jenkins java -jar /var/jenkins_home/war/WEB-INF/jenkins-cli.jar -s http://localhost:8080 -auth @/var/jenkins_home/admin.password who-am-i
 
-      retries: 5
+      retries: 10
       delay: 5
       register: result
       until: result.rc == 0
@@ -94,7 +95,7 @@
       command:
         docker exec -it jenkins java -jar /var/jenkins_home/war/WEB-INF/jenkins-cli.jar -s http://localhost:8080 -auth @/var/jenkins_home/admin.password who-am-i
 
-      retries: 5
+      retries: 10
       delay: 5
       register: result
       until: result.rc == 0
