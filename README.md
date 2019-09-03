@@ -12,9 +12,9 @@ This project is to automatically set up jenkins server
 
 * create 2 AWS profiles: sandbox and mgmt
 * create VPC with project: git@bitbucket.org:qriousnz/ansible-pb-aviatrix-peering.git
-* > terraform init -backend-config=prod.backend
+* > terraform init
 * > terraform plan -var-file=prod.tfvars
-* > terraform plan -var-file=prod.tfvars
+* > terraform apply -var-file=prod.tfvars
 * > cd ansible/
 * > ansible-playbook  jenkins-ssl.yml -e @prod.ansible.config.yml -vvv
 * > ansible-playbook  jenkins-docker.yml -e @prod.ansible.config.yml -vvv
