@@ -61,6 +61,11 @@ resource "aws_iam_policy" "master_jenkins_policy" {
             ],
             "Effect": "Allow",
             "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "ssm:GetParameter",
+            "Resource": "arn:aws:ssm:ap-southeast-2:587885198623:parameter/*"
         }
     ]
 }

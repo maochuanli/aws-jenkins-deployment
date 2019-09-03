@@ -1,0 +1,44 @@
+jenkins:
+  agentProtocols:
+  - "JNLP4-connect"
+  - "Ping"
+
+  clouds:
+  - amazonEC2:
+      cloudName: "aws-ec2-cloud"
+      privateKey: {{  ec2_private_key_content | to_nice_yaml(indent=8) }}
+
+      region: "ap-southeast-2"
+      templates:
+      - ami: "{{ slave_ami_id}}"
+        amiType:
+          unixData:
+            sshPort: "22"
+        associatePublicIp: false
+        connectBySSHProcess: false
+        connectionStrategy: PRIVATE_IP
+        deleteRootOnTermination: false
+        description: "customize ami based on Amazon Linux"
+        ebsOptimized: false
+        iamInstanceProfile: "{{slave_instance_profile_arn}}"
+        idleTerminationMinutes: "30"
+        labelString: "ec2 docker debian debian9"
+        maxTotalUses: -1
+        mode: NORMAL
+        monitoring: false
+        numExecutors: 5
+        remoteAdmin: "admin"
+        remoteFS: "/home/admin"
+        securityGroups: "{{  slave_security_group_name}}"
+        stopOnTerminate: false
+        subnetId: "{{ slave_subnet_id }}"
+        t2Unlimited: false
+        type: T2Micro
+        useDedicatedTenancy: false
+        useEphemeralDevices: false
+        tags:
+          - name: "Name"
+            value: "jenkins-slave"
+      useInstanceProfileForCredentials: false
+
+

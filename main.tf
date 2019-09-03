@@ -255,8 +255,13 @@ resource "local_file" "ansible-config" {
 jenkins_public_ip: ${aws_eip.jenkins.public_ip}
 jenkins_dns_name: ${ aws_route53_record.jenkins.name }
 aws_profile: default
-private_subnet_id: ${aws_subnet.private_subnet.id}
-reset_docker: false
+reset_docker: true
+#Default Debian custom image
+slave_ami_id: ami-027d1de841c24d55c
+slave_subnet_id: ${aws_subnet.private_subnet.id}
+slave_security_group_name: ${aws_security_group.slave.name}
+slave_private_key_file_path: ${var.key_file_path}
+slave_instance_profile_arn: ${aws_iam_instance_profile.slave_instance_profile.arn}
 
 DATA
     filename = "${path.module}/ansible/${var.env}.ansible.config.yml"

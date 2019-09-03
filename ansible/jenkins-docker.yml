@@ -14,6 +14,9 @@
 - name: Run jenkins server inside docker
   hosts: jenkins
   gather_facts: true
+  vars:
+    ec2_private_key_content: "{{lookup('file', slave_private_key_file_path)}}"
+
   tasks:
     - name: create data directory for mount
       become: true
@@ -21,11 +24,6 @@
         path: /var/jenkins_home
         state: directory
         mode: '0777'
-
-    - name: delete all files under /var/jenkins_home
-      command: 
-        rm -rf /var/jenkins_home/*
-      when: reset_docker == true 
 
     - name: install docker-py
       pip:
@@ -35,6 +33,11 @@
       docker_container:
         name: jenkins
         state: absent
+      when: reset_docker == true
+
+    - name: delete all files under /var/jenkins_home
+      command:
+        rm -rf /var/jenkins_home/*
       when: reset_docker == true
 
     - name: run docker with jenkins/jenkins:lts image
@@ -49,6 +52,9 @@
           - "127.0.0.1:8080:8080"
         volumes:
           - /var/jenkins_home:/var/jenkins_home
+        env:
+          JENKINS_DNS_NAME: "{{jenkins_dns_name}}"
+          JAVA_OPTS: -Djenkins.install.runSetupWizard=false
 
     - name: Waits for port 8080
       wait_for:
@@ -63,22 +69,11 @@
       shell:
         echo "admin:$(cat /var/jenkins_home/secrets/initialAdminPassword)" > /var/jenkins_home/admin.password
 
-    - name: create groovy script for new user
-      copy:
-        content: |
-          jenkins.model.Jenkins.instance.securityRealm.createAccount("sre.admin", "So5%6pli0RMLx*j")
-        dest: "/var/jenkins_home/createAdmin.groovy"
-
-    - name: create shell script for new user
-      copy:
-        content: |
-          java -jar /var/jenkins_home/war/WEB-INF/jenkins-cli.jar -s http://localhost:8080 -auth @/var/jenkins_home/admin.password groovy = < /var/jenkins_home/createAdmin.groovy
-        dest: "/var/jenkins_home/createAdmin.sh"
-        
-    - name: create admin user sre.admin
+    - name: test web server
       command:
-        docker exec -it jenkins /bin/bash /var/jenkins_home/createAdmin.sh
-      retries: 3
+        docker exec -it jenkins java -jar /var/jenkins_home/war/WEB-INF/jenkins-cli.jar -s http://localhost:8080 -auth @/var/jenkins_home/admin.password who-am-i
+
+      retries: 5
       delay: 5
       register: result
       until: result.rc == 0
@@ -87,10 +82,37 @@
       shell: |
         docker exec -it jenkins java -jar /var/jenkins_home/war/WEB-INF/jenkins-cli.jar -s http://localhost:8080 -auth @/var/jenkins_home/admin.password  {{ item }}
       loop:
-        - version
-        - install-plugin configuration-as-code
-        - install-plugin blueocean
-        - install-plugin bitbucket
         - install-plugin ec2
         - install-plugin amazon-ecs
+        - install-plugin blueocean
+        - install-plugin bitbucket
+        - install-plugin configuration-as-code
+        - install-plugin configuration-as-code-secret-ssm
         - restart
+
+    - name: test web server 2
+      command:
+        docker exec -it jenkins java -jar /var/jenkins_home/war/WEB-INF/jenkins-cli.jar -s http://localhost:8080 -auth @/var/jenkins_home/admin.password who-am-i
+
+      retries: 5
+      delay: 5
+      register: result
+      until: result.rc == 0
+
+    - name: copy over the jenkins credential config file
+      template:
+        src: templates/jenkins.caas.cred.j2
+        dest: //var/jenkins_home/jenkins.yaml
+
+    - name: config cred with the caas file
+      shell: |
+        docker exec -it jenkins java -jar /var/jenkins_home/war/WEB-INF/jenkins-cli.jar -s http://localhost:8080 -auth @/var/jenkins_home/admin.password reload-jcasc-configuration
+
+    - name: copy over the jenkins ec2 config file
+      template:
+        src: templates/jenkins.caas.ec2.j2
+        dest: //var/jenkins_home/jenkins.yaml
+
+    - name: config cred with the caas file for ec2
+      shell: |
+        docker exec -it jenkins java -jar /var/jenkins_home/war/WEB-INF/jenkins-cli.jar -s http://localhost:8080 -auth @/var/jenkins_home/admin.password reload-jcasc-configuration

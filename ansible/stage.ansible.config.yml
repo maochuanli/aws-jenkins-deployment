@@ -1,6 +1,7 @@
 ---
-jenkins_public_ip: 13.210.114.89
+jenkins_public_ip: 3.104.166.25
 jenkins_dns_name: jenkins-stage.sandbox.qrious.co.nz
 aws_profile: default
-private_subnet_id: subnet-004aad9d7ec52d724
+private_subnet_id: subnet-0411323a4bf55bc1f
+reset_docker: false
 

@@ -1,0 +1,49 @@
+jenkins:
+  systemMessage: "Jenkins for Qrious CI/CD"
+
+  numExecutors: 0
+  mode: NORMAL
+  scmCheckoutRetryCount: 3
+
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+       - id: ${jenkins.admin.name}
+         password: ${jenkins.admin.password}
+
+#https://github.com/jenkinsci/configuration-as-code-plugin/blob/master/demos/credentials/credentials.yaml
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - usernamePassword:
+              scope: GLOBAL
+              id: "bitbucket-id"
+              username: "${bitbucket.user.name}"
+              password: ${bitbucket.user.password} #Load from Environment Variable
+              description: "Bitbucket user account to access repositories"
+
+          - usernamePassword:
+              scope: GLOBAL
+              id: "docker-id"
+              username: "${docker.user.name}"
+              password: ${docker.user.password} #Load from Environment Variable
+              description: "Docker user account to access images"
+
+unclassified:
+  bitbucketEndpointConfiguration:
+    endpoints:
+    - bitbucketCloudEndpoint:
+        bitbucketJenkinsRootUrl: "https://{{jenkins_dns_name}}/"
+        credentialsId: "bitbucket-id"
+        enableCache: false
+        manageHooks: true
+        repositoriesCacheDuration: 0
+        teamCacheDuration: 0
+  gitHubPluginConfig:
+    hookUrl: "https://{{jenkins_dns_name}}/github-webhook/"
+  pipeline-model:
+    dockerLabel: "docker"
+    registry:
+      credentialsId: "docker-id"
