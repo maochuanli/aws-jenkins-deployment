@@ -1,12 +1,38 @@
 terraform {
-  backend "s3" {}
+  backend "s3" {
+    role_arn             = "arn:aws:iam::130552128005:role/jenkins-assume-role-from-sandbox"
+    key                  = "terraform.tfstate"
+    dynamodb_table       = "Terraform-State-Lock-Table"
+    bucket               = "terraform.state.files.qrious.co.nz"
+    region               = "ap-southeast-2"
+    workspace_key_prefix = "Qrious-Jenkins-Project"
+  }
 }
 
 # Specify the provider and access details
 provider "aws" {
   region = "${var.aws_region}"
-  profile = "${var.aws_profile}"
+  assume_role {
+    role_arn     = "arn:aws:iam::130552128005:role/jenkins-assume-role-from-sandbox"
+  }
 }
+
+resource "aws_vpc" "main" {
+  cidr_block = "${var.vpc_cidr}"
+}
+
+resource "aws_internet_gateway" "gw" {
+  vpc_id = "${aws_vpc.main.id}"
+
+  tags = {
+    Name = "${var.vpc_prefix}-${var.env}-igw"
+    Customer = "Qrious"
+    Environment = "${var.env}"
+    Owner = "sre@qrious.co.nz"
+    Project = "Qrious Jenkins CI"
+  }
+}
+
 
 resource "aws_key_pair" "ec2" {
   key_name   = "${var.key_name}"
@@ -16,7 +42,7 @@ resource "aws_key_pair" "ec2" {
 
 # Create a subnet to launch our instances into
 resource "aws_subnet" "public_subnet" {
-  vpc_id                  = "${data.aws_cloudformation_stack.aviatrix.outputs["VPCId"]}"
+  vpc_id                  = "${aws_vpc.main.id}"
   cidr_block              = "${var.public_subnet_cidr}"
   map_public_ip_on_launch = false
 
@@ -31,7 +57,7 @@ resource "aws_subnet" "public_subnet" {
 
 # Create a subnet to launch our slaves into
 resource "aws_subnet" "private_subnet" {
-  vpc_id                  = "${data.aws_cloudformation_stack.aviatrix.outputs["VPCId"]}"
+  vpc_id                  = "${aws_vpc.main.id}"
   cidr_block              = "${var.private_subnet_cidr}"
   map_public_ip_on_launch = false
   tags = {
@@ -45,16 +71,16 @@ resource "aws_subnet" "private_subnet" {
 
 //public subnet route table
 resource "aws_route_table" "public_route_table" {
-  vpc_id = "${data.aws_cloudformation_stack.aviatrix.outputs["VPCId"]}"
+  vpc_id = "${aws_vpc.main.id}"
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = "${data.aws_cloudformation_stack.aviatrix.outputs["InternetGatewayId"]}"
+    gateway_id = "${aws_internet_gateway.gw.id}"
   }
 
-  route {
-    cidr_block = "10.201.247.0/24"
-    network_interface_id = "${data.aws_cloudformation_stack.aviatrix.outputs["AviatrixENIId"]}"
-  }
+#  route {
+#    cidr_block = "10.201.247.0/24"
+#    network_interface_id = "${data.aws_cloudformation_stack.aviatrix.outputs["AviatrixENIId"]}"
+#  }
 
   tags = {
     Name = "${var.vpc_prefix}-${var.env}-public-subnet-route-table"
@@ -85,16 +111,16 @@ resource "aws_nat_gateway" "nat_gw" {
 
 //private subnet route table
 resource "aws_route_table" "private_route_table" {
-  vpc_id = "${data.aws_cloudformation_stack.aviatrix.outputs["VPCId"]}"
+  vpc_id = "${aws_vpc.main.id}"
   route {
     cidr_block = "0.0.0.0/0"
     nat_gateway_id = "${aws_nat_gateway.nat_gw.id}"
   }
 
-  route {
-    cidr_block = "10.201.247.0/24"
-    network_interface_id = "${data.aws_cloudformation_stack.aviatrix.outputs["AviatrixENIId"]}"
-  }
+#  route {
+#    cidr_block = "10.201.247.0/24"
+#    network_interface_id = "${data.aws_cloudformation_stack.aviatrix.outputs["AviatrixENIId"]}"
+#  }
 
   tags = {
     Name = "${var.vpc_prefix}-${var.env}-private-subnet-route-table"
@@ -114,7 +140,7 @@ resource "aws_route_table_association" "private_subnet_association" {
 resource "aws_security_group" "master" {
   name        = "jenkins-master-security-group-${var.env}"
   description = "Used in the terraform"
-  vpc_id      = "${data.aws_cloudformation_stack.aviatrix.outputs["VPCId"]}"
+  vpc_id      = "${aws_vpc.main.id}"
 
   # SSH access from anywhere
   ingress {
@@ -154,15 +180,7 @@ resource "aws_security_group" "master" {
 resource "aws_security_group" "slave" {
   name        = "jenkins-slave-security-group-${var.env}"
   description = "Used in the private subnet"
-  vpc_id      = "${data.aws_cloudformation_stack.aviatrix.outputs["VPCId"]}"
-
-  # HTTPS access from the VPC
-  ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "tcp"
-    cidr_blocks = ["${data.aws_cloudformation_stack.aviatrix.outputs["VPCCidrBlock"]}"]
-  }
+  vpc_id      = "${aws_vpc.main.id}"
 
   # SSH access from anywhere
   ingress {
@@ -253,7 +271,6 @@ resource "local_file" "ansible-config" {
     content = <<DATA
 ---
 jenkins_public_ip: ${aws_eip.jenkins.public_ip}
-jenkins_dns_name: ${ aws_route53_record.jenkins.name }
 aws_profile: default
 reset_docker: true
 #Default Debian custom image

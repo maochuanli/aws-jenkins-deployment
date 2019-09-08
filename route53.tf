@@ -1,7 +1,3 @@
-data  "aws_route53_zone" "sandbox" {
-  name = "sandbox.qrious.co.nz"
-}
-
 resource "aws_eip" "nat" {
   vpc = true
   tags = {
@@ -22,15 +18,4 @@ resource "aws_eip" "jenkins" {
     Owner = "sre@qrious.co.nz"
     Project = "Qrious Jenkins CI"
   }
-}
-
-resource "aws_route53_record" "jenkins" {
-  zone_id = "${data.aws_route53_zone.sandbox.zone_id}"
-  name    = "jenkins-${var.env}.${data.aws_route53_zone.sandbox.name}"
-  type    = "A"
-  ttl     = "300"
-
-  records = [
-    "${aws_eip.jenkins.public_ip}"
-  ]
 }

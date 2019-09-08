@@ -20,22 +20,22 @@ variable "aws_region" {
   default     = "ap-southeast-2"
 }
 
-variable "aws_profile" {
-  default = "sandbox"
-}
 
-# Amazon Linux 2 comes with five years support.
 # Debian-9 Stretch Market place AMI  
 variable "aws_amis" {
   default = {
-    #ap-southeast-2 = "ami-0dc96254d5535925f"
-    ap-southeast-2 = "ami-00a5fc80ec944398f"
+    ap-southeast-2 = "ami-0019173738c29be04"
   }
 }
 
 variable "vpc_prefix" {
-  description = "To name all resource with this prefix"
-  default = "sandbox-jenkins"
+  description = "The name for all resources"
+  default = "jenkins-vpc"
+}
+
+variable "vpc_cidr" {
+  description = "The cidr for VPC"
+  default = "172.25.212.0/24"
 }
 
 variable "public_subnet_cidr" {
@@ -45,3 +45,4 @@ variable "public_subnet_cidr" {
 variable "private_subnet_cidr" {
   description = "The private subnet cidr in VPC"
 }
+
