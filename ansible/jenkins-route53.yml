@@ -1,0 +1,16 @@
+---
+- name: Create jenkins master group with it's public ip
+  hosts: localhost
+  tasks:
+    - name: Add instance to master group
+      route53:
+        state: present
+        overwrite: true
+        zone: qrious.co.nz
+        record: jenkins.qrious.co.nz
+        type: A
+        ttl: 300
+        profile: root
+        value:
+          - "{{ jenkins_public_ip }}"
+
