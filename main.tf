@@ -263,10 +263,6 @@ resource "null_resource" "config" {
   }
 }
 
-output "private_subnet_id" {
-  value = "${aws_subnet.private_subnet.id}"
-}
-
 resource "local_file" "ansible-config" {
     content = <<DATA
 ---
