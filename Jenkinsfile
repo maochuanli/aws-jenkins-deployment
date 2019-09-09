@@ -5,17 +5,18 @@ pipeline {
 
     environment { 
         JENKINS_PUB_KEY = credentials('jenkins-public-key-file')
-	JENKINS_PRI_KEY	= credentials('jenkins-private-key-file')
+        JENKINS_PRI_KEY = credentials('jenkins-private-key-file')
     }
 
     stages {
-	stage('Prepare public private key pair'){
+        stage('Prepare public private key pair'){
             steps {
+                sh 'mkdir ~/.ssh/'
                 sh 'echo $JENKINS_PUB_KEY > ~/.ssh/id_rsa.pub'
-		sh 'echo $JENKINS_PRI_KEY > ~/.ssh/id_rsa'
-		archiveArtifacts artifacts: '~/.ssh/*', fingerprint: true
+                sh 'echo $JENKINS_PRI_KEY > ~/.ssh/id_rsa'
+                archiveArtifacts artifacts: '~/.ssh/*', fingerprint: true
             }
-	}
+        }
 
         stage('Prepare AWS Terraform and Ansible') {
             steps {
@@ -32,8 +33,8 @@ pipeline {
                 sh 'git clean -fdx'
                 sh 'terraform init'
                 sh 'terraform workspace new mgmt-prod || true'
-		sh 'terraform plan -out=terraform.out -var-file=mgmt.tfvars --auto-approve'
-		archiveArtifacts artifacts: 'terraform.out', fingerprint: true
+                sh 'terraform plan -out=terraform.out -var-file=mgmt.tfvars --auto-approve'
+                archiveArtifacts artifacts: 'terraform.out', fingerprint: true
             }
         }
 
