@@ -10,7 +10,6 @@
         record: jenkins.qrious.co.nz
         type: A
         ttl: 300
-        profile: mgmt
         value:
           - "{{ jenkins_public_ip }}"
 

@@ -29,7 +29,7 @@ pipeline {
                 sh 'cp -r aws ~/.aws'
                 sh 'pip install --user ansible boto'
                 sh 'pip install --user awscli'
-		sh 'aws --profile root s3 ls | true'
+//		sh 'aws --profile root s3 ls | true'
             }
         }
 
@@ -46,14 +46,11 @@ pipeline {
 
         stage('Configure Jenkins Server'){
             steps {
-                sh 'ls -la ~/'
-		sh 'cp -r aws ~/.aws'
-		sh 'ls -la ~/'
-		sh 'aws --profile root s3 ls | true'
+                sh 'ls -la ~/.aws'
+		sh 'cat ~/.aws/config'
+		sh 'aws --profile mgmt s3 ls | true'
 		dir ('ansible') {
-                  sh 'ls -lh'
-                  sh 'which ansible-playbook'
-                  sh 'ansible-playbook jenkins-route53.yml -e @mgmt.ansible.config.yml -vvvv'
+                  sh 'ansible-playbook -e profile=root jenkins-route53.yml -e @mgmt.ansible.config.yml -vvvvv'
                 }
 		
             }
