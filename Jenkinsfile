@@ -13,7 +13,6 @@ pipeline {
         stage('Prepare public private key pair'){
             steps {
                 sh 'git clean -fdx'
-                sh 'cp -r aws .aws'
                 sh "mkdir ~/.ssh/ || true"
                 sh "mkdir -p ~/.local/bin"
                 sh "cp $JENKINS_PUB_KEY ~/.ssh/id_rsa.pub"
@@ -46,11 +45,15 @@ pipeline {
 
         stage('Configure Jenkins Server'){
             steps {
-                dir ('ansible') {
+                sh 'ls -l ~/'
+		sh 'cp -r aws ~/.aws'
+		sh 'ls -l ~/'
+		dir ('ansible') {
                   sh 'ls -lh'
                   sh 'which ansible-playbook'
                   sh 'ansible-playbook jenkins-route53.yml -e @mgmt.ansible.config.yml -vvvv'
                 }
+		
             }
         }
     }
