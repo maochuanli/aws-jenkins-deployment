@@ -6,6 +6,7 @@ pipeline {
     environment { 
         JENKINS_PUB_KEY = credentials('jenkins-public-key-file')
         JENKINS_PRI_KEY = credentials('jenkins-private-key-file')
+        HOME = "/home/developer"
     }
 
     stages {
@@ -17,7 +18,7 @@ pipeline {
                 sh "echo $JENKINS_PUB_KEY > ~/.ssh/id_rsa.pub"
                 sh "echo $JENKINS_PRI_KEY > ~/.ssh/id_rsa"
 		sh "ls -l ~/.ssh/"
-                archiveArtifacts artifacts: "${env.USERHOME}/.ssh/id_rsa", fingerprint: true
+                archiveArtifacts artifacts: "${env.HOME}/.ssh/id_rsa", fingerprint: true
             }
         }
 
