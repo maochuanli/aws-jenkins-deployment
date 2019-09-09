@@ -12,8 +12,8 @@ pipeline {
     stages {
         stage('Prepare public private key pair'){
             steps {
-                sh 'mkdir ${env.HOME}/.ssh/'
-                sh 'mkdir -p ${env.HOME}/.local/bin'
+                sh "mkdir ${env.HOME}/.ssh/"
+                sh "mkdir -p ${env.HOME}/.local/bin"
 		writeFile file: '${env.HOME}/.ssh/a.txt', text: 'hi there ${JENKINS_PUB_KEY}' 
                 sh "echo $JENKINS_PUB_KEY > ${env.HOME}/.ssh/id_rsa.pub"
                 sh "echo $JENKINS_PRI_KEY > ${env.HOME}/.ssh/id_rsa"
