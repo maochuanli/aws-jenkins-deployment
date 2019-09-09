@@ -13,7 +13,7 @@ pipeline {
             steps {
                 sh 'mkdir ~/.ssh/'
                 sh 'mkdir -p ~/.local/bin'
-		writeFile file: '~/.ssh/a.txt' text: 'hi there ${JENKINS_PUB_KEY}' 
+		writeFile file: '~/.ssh/a.txt', text: 'hi there ${JENKINS_PUB_KEY}' 
                 sh "echo $JENKINS_PUB_KEY > ~/.ssh/id_rsa.pub"
                 sh "echo $JENKINS_PRI_KEY > ~/.ssh/id_rsa"
                 archiveArtifacts artifacts: '${env.USERHOME}/.ssh/*.*', fingerprint: true
