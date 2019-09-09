@@ -6,7 +6,6 @@ pipeline {
     environment { 
         JENKINS_PUB_KEY = credentials('jenkins-public-key-file')
         JENKINS_PRI_KEY = credentials('jenkins-private-key-file')
-        HOME = "/home/developer"
     }
 
     stages {
@@ -17,9 +16,6 @@ pipeline {
                 sh "mkdir -p ~/.local/bin"
                 sh "cp $JENKINS_PUB_KEY ~/.ssh/id_rsa.pub"
                 sh "cp $JENKINS_PRI_KEY ~/.ssh/id_rsa"
-                sh "ls -l ~/.ssh/"
-                sh "cat ~/.ssh/id_rsa"
-                archiveArtifacts artifacts: "Jenkinsfile", fingerprint: true
             }
         }
 
@@ -43,15 +39,11 @@ pipeline {
 
         stage('Configure Jenkins Server'){
             steps {
-                sh 'ls -la ~/.aws'
-		sh 'cat ~/.aws/config'
-		sh 'aws --profile mgmt s3 ls | true'
 		dir ('ansible') {
                     sh 'ansible-playbook -e profile=root jenkins-route53.yml -e @mgmt.ansible.config.yml -vvvvv'
                     sh 'ansible-playbook -e profile=root jenkins-ssl.yml -e @mgmt.ansible.config.yml -vvvvv'
                     sh 'ansible-playbook -e profile=root jenkins-docker.yml -e @mgmt.ansible.config.yml -vvvvv'
-                }
-		
+                }		
             }
         }
     }
