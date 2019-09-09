@@ -13,13 +13,14 @@ pipeline {
         stage('Prepare public private key pair'){
             steps {
                 sh 'git clean -fdx'
-	        sh "mkdir ~/.ssh/ || true"
+                sh 'cp -r aws .aws'
+                sh "mkdir ~/.ssh/ || true"
                 sh "mkdir -p ~/.local/bin"
                 sh "cp $JENKINS_PUB_KEY ~/.ssh/id_rsa.pub"
                 sh "cp $JENKINS_PRI_KEY ~/.ssh/id_rsa"
-		sh "ls -l ~/.ssh/"
-		sh "cat ~/.ssh/id_rsa"
-		archiveArtifacts artifacts: "Jenkinsfile", fingerprint: true
+                sh "ls -l ~/.ssh/"
+                sh "cat ~/.ssh/id_rsa"
+                archiveArtifacts artifacts: "Jenkinsfile", fingerprint: true
             }
         }
 
@@ -36,9 +37,9 @@ pipeline {
             steps {
                 sh 'terraform init'
                 sh 'terraform workspace new mgmt-prod || true'
-		sh 'terraform workspace select mgmt-prod'
+                sh 'terraform workspace select mgmt-prod'
                 sh 'terraform plan -out=terraform.out -var-file=mgmt.tfvars'
-		sh 'terraform apply --auto-approve -var-file=mgmt.tfvars'
+                sh 'terraform apply --auto-approve -var-file=mgmt.tfvars'
                 archiveArtifacts artifacts: 'ansible/*.ansible.config.yml'
             }
         }
@@ -46,10 +47,10 @@ pipeline {
         stage('Configure Jenkins Server'){
             steps {
                 dir ('ansible') {
-		  sh 'ls -lh'
-		  sh 'which ansible-playbook'
-		  sh 'ansible-playbook jenkins-route53.yml -e @mgmt.ansible.config.yml -vvvv'
-		}
+                  sh 'ls -lh'
+                  sh 'which ansible-playbook'
+                  sh 'ansible-playbook jenkins-route53.yml -e @mgmt.ansible.config.yml -vvvv'
+                }
             }
         }
     }
