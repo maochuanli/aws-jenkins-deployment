@@ -2,6 +2,13 @@
 - name: Update Route53 zone in root account with new VM's public ip
   hosts: localhost
   tasks:
+    - name: assuming role required
+      sts_assume_role:
+        role_arn: "{{ aws.account_role_arn }}"
+        role_session_name: assumed_role
+        region: "{{ aws.region }}"
+      register: assumed_role
+
     - name: Create or Update a route53 record
       route53:
         state: present
@@ -13,3 +20,6 @@
         value:
           - "{{ jenkins_public_ip }}"
 
+        aws_access_key: "{{ assumed_role.sts_creds.access_key }}"
+        aws_secret_key: "{{ assumed_role.sts_creds.secret_key }}"
+        security_token: "{{ assumed_role.sts_creds.session_token }}"
