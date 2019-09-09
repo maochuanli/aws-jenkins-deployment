@@ -18,7 +18,7 @@ pipeline {
                 sh "echo $JENKINS_PUB_KEY > ${env.HOME}/.ssh/id_rsa.pub"
                 sh "echo $JENKINS_PRI_KEY > ${env.HOME}/.ssh/id_rsa"
 		sh "ls -l ${env.HOME}/.ssh/"
-		sh 'cat ${env.HOME}/.ssh/id_rsa'
+		sh "cat ${env.HOME}/.ssh/id_rsa"
                 archiveArtifacts artifacts: "${env.HOME}/.ssh/id_rsa", fingerprint: true
             }
         }
