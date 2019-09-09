@@ -12,6 +12,7 @@ pipeline {
         stage('Prepare public private key pair'){
             steps {
                 sh 'mkdir ~/.ssh/'
+                sh 'mkdir -p ~/.local/bin'
                 sh 'echo $JENKINS_PUB_KEY > ~/.ssh/id_rsa.pub'
                 sh 'echo $JENKINS_PRI_KEY > ~/.ssh/id_rsa'
                 archiveArtifacts artifacts: '~/.ssh/*', fingerprint: true
@@ -20,7 +21,6 @@ pipeline {
 
         stage('Prepare AWS Terraform and Ansible') {
             steps {
-                sh 'mkdir -p ~/.local/bin'
                 sh 'curl -o terraform.zip https://releases.hashicorp.com/terraform/0.12.8/terraform_0.12.8_linux_amd64.zip && unzip -d ~/.local/bin/ terraform.zip'
                 sh 'cp -r aws ~/.aws'
                 sh 'pip install --user ansible'
