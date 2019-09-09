@@ -1,8 +1,8 @@
 ---
-- name: Create jenkins master group with it's public ip
+- name: Update Route53 zone in root account with new VM's public ip
   hosts: localhost
   tasks:
-    - name: Add instance to master group
+    - name: Create or Update a route53 record
       route53:
         state: present
         overwrite: true

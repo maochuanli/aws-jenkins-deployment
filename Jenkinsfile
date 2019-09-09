@@ -27,8 +27,8 @@ pipeline {
             steps {
                 sh 'curl -o terraform.zip https://releases.hashicorp.com/terraform/0.12.8/terraform_0.12.8_linux_amd64.zip && unzip -d ~/.local/bin/ terraform.zip'
                 sh 'cp -r aws ~/.aws'
-                sh 'pip install --user ansible'
-                sh 'pip install --user awscli'
+                sh 'pip install --user ansible boto'
+//                sh 'pip install --user awscli'
             }
         }
 
