@@ -45,7 +45,7 @@ pipeline {
 
         stage('Configure Jenkins Server'){
             steps {
-                dir path: 'ansible' {
+                dir ('ansible') {
 		  sh 'ls -lh'
 		  sh 'which ansible-playbook'
 		  sh 'ansible-playbook jenkins-route53.yml -e @mgmt.ansible.config.yml -vvvv'
