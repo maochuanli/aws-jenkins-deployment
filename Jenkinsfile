@@ -39,11 +39,11 @@ pipeline {
 
         stage('Configure Jenkins Server'){
             steps {
-		dir ('ansible') {
-                    sh 'ansible-playbook -e profile=root jenkins-route53.yml -e @mgmt.ansible.config.yml -vvvvv'
-                    sh 'ansible-playbook -e profile=root jenkins-ssl.yml -e @mgmt.ansible.config.yml -vvvvv'
-                    sh 'ansible-playbook -e profile=root jenkins-docker.yml -e @mgmt.ansible.config.yml -vvvvv'
-                }		
+                dir ('ansible') {
+                    sh 'ansible-playbook jenkins-route53.yml -e @mgmt.ansible.config.yml -vvvvv'
+                    sh 'ansible-playbook jenkins-ssl.yml     -e @mgmt.ansible.config.yml -vvvvv'
+                    sh 'ansible-playbook jenkins-docker.yml  -e @mgmt.ansible.config.yml -vvvvv'
+                }
             }
         }
     }

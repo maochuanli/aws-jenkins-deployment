@@ -267,6 +267,7 @@ resource "local_file" "ansible-config" {
     content = <<DATA
 ---
 jenkins_public_ip: ${aws_eip.jenkins.public_ip}
+jenkins_dns_name: jenkins.qrious.co.nz
 reset_docker: true
 #Default Debian custom image
 slave_ami_id: ami-0019173738c29be04
