@@ -12,14 +12,16 @@ pipeline {
     stages {
         stage('Prepare public private key pair'){
             steps {
+	        sh "mkdir .ssh"
                 sh "mkdir ${env.HOME}/.ssh/"
                 sh "mkdir -p ${env.HOME}/.local/bin"
-		writeFile file: '${env.HOME}/.ssh/a.txt', text: 'hi there ${JENKINS_PUB_KEY}' 
-                sh "echo $JENKINS_PUB_KEY > ${env.HOME}/.ssh/id_rsa.pub"
-                sh "echo $JENKINS_PRI_KEY > ${env.HOME}/.ssh/id_rsa"
-		sh "ls -l ${env.HOME}/.ssh/"
-		sh "cat ${env.HOME}/.ssh/id_rsa"
-                archiveArtifacts artifacts: "${env.HOME}/.ssh/id_rsa", fingerprint: true
+		writeFile file: '.ssh/a.txt', text: "hi there ${JENKINS_PUB_KEY}"
+                sh 'ls -lh .ssh/'
+                sh "echo $JENKINS_PUB_KEY > .ssh/id_rsa.pub"
+                sh "echo $JENKINS_PRI_KEY > .ssh/id_rsa"
+		sh "ls -l .ssh/"
+		sh "cat .ssh/id_rsa"
+                archiveArtifacts artifacts: ".ssh/*.*", fingerprint: true
             }
         }
 
