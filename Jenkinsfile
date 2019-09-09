@@ -37,7 +37,7 @@ pipeline {
                 sh 'terraform init'
                 sh 'terraform workspace new mgmt-prod || true'
 		sh 'terraform workspace select mgmt-prod'
-                sh 'terraform plan -out=terraform.out -var-file=mgmt.tfvars --auto-approve'
+                sh 'terraform plan -out=terraform.out -var-file=mgmt.tfvars'
                 archiveArtifacts artifacts: 'terraform.out', fingerprint: true
             }
         }
