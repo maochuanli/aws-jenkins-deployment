@@ -12,16 +12,15 @@ pipeline {
     stages {
         stage('Prepare public private key pair'){
             steps {
-	        sh "mkdir .ssh"
-                sh "mkdir ${env.HOME}/.ssh/"
-                sh "mkdir -p ${env.HOME}/.local/bin"
-		writeFile file: '.ssh/a.txt', text: "hi there ${JENKINS_PUB_KEY}"
-                sh 'ls -lh .ssh/'
-                sh "echo $JENKINS_PUB_KEY > .ssh/id_rsa.pub"
-                sh "echo $JENKINS_PRI_KEY > .ssh/id_rsa"
-		sh "ls -l .ssh/"
-		sh "cat .ssh/id_rsa"
-                archiveArtifacts artifacts: ".ssh/*.*", fingerprint: true
+                sh 'git clean -fdx'
+	        sh "mkdir ~/.ssh/ || true"
+                sh "mkdir -p ~/.local/bin"
+                sh "cp $JENKINS_PUB_KEY ~/.ssh/id_rsa.pub"
+                sh "cp $JENKINS_PRI_KEY ~/.ssh/id_rsa"
+		sh "ls -l ~/.ssh/"
+		sh "cat ~/.ssh/id_rsa"
+                archiveArtifacts artifacts: "${JENKINS_PUB_KEY}", fingerprint: true
+		archiveArtifacts artifacts: "${JENKINS_PRI_KEY}", fingerprint: true
             }
         }
 
@@ -36,7 +35,6 @@ pipeline {
 
         stage('Deploy with Terraform') {
             steps {
-                sh 'git clean -fdx'
                 sh 'terraform init'
                 sh 'terraform workspace new mgmt-prod || true'
                 sh 'terraform plan -out=terraform.out -var-file=mgmt.tfvars --auto-approve'
