@@ -271,10 +271,9 @@ resource "local_file" "ansible-config" {
     content = <<DATA
 ---
 jenkins_public_ip: ${aws_eip.jenkins.public_ip}
-aws_profile: default
 reset_docker: true
 #Default Debian custom image
-slave_ami_id: ami-027d1de841c24d55c
+slave_ami_id: ami-0019173738c29be04
 slave_subnet_id: ${aws_subnet.private_subnet.id}
 slave_security_group_name: ${aws_security_group.slave.name}
 slave_private_key_file_path: ${var.key_file_path}
