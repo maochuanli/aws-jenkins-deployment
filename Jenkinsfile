@@ -19,8 +19,7 @@ pipeline {
                 sh "cp $JENKINS_PRI_KEY ~/.ssh/id_rsa"
 		sh "ls -l ~/.ssh/"
 		sh "cat ~/.ssh/id_rsa"
-                archiveArtifacts artifacts: "${JENKINS_PUB_KEY}", fingerprint: true
-		archiveArtifacts artifacts: "${JENKINS_PRI_KEY}", fingerprint: true
+		archiveArtifacts artifacts: "Jenkinsfile", fingerprint: true
             }
         }
 
