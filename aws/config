@@ -1,6 +1,6 @@
 [profile root]
 region = ap-southeast-2
-role_arn = arn:aws:iam::630622130945:role/jenkins-assume-role-from-sandbo
+role_arn = arn:aws:iam::630622130945:role/jenkins-assume-role-from-sandbox
 credential_source = Ec2InstanceMetadata
 
 [profile mgmt]
