@@ -15,7 +15,7 @@ pipeline {
                 sh 'mkdir -p ~/.local/bin'
                 sh 'echo $JENKINS_PUB_KEY > ~/.ssh/id_rsa.pub'
                 sh 'echo $JENKINS_PRI_KEY > ~/.ssh/id_rsa'
-                archiveArtifacts artifacts: '~/.ssh/*', fingerprint: true
+                archiveArtifacts artifacts: '${env.USERHOME}/.ssh/*.*', fingerprint: true
             }
         }
 
