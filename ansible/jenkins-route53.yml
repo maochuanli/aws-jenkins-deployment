@@ -4,9 +4,9 @@
   tasks:
     - name: assuming role required
       sts_assume_role:
-        role_arn: "{{ aws.account_role_arn }}"
+        role_arn: "arn:aws:iam::630622130945:role/jenkins-assume-role-from-sandbox"
         role_session_name: assumed_role
-        region: "{{ aws.region }}"
+        region: "ap-southeast-2"
       register: assumed_role
 
     - name: Create or Update a route53 record
