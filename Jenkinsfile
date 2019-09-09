@@ -40,10 +40,13 @@ pipeline {
 
         stage('Configure Jenkins Server'){
             steps {
+	    	echo "Run ansible playbooks to configure the jenkins server"
+		sh 'cd ansible; ansible-playbook jenkins-route53.yml -e @mgmt.ansible.config.yml'
                 dir ('ansible') {
-                    sh 'ansible-playbook jenkins-route53.yml -e @mgmt.ansible.config.yml -vvvvv'
-                    sh 'ansible-playbook jenkins-ssl.yml     -e @mgmt.ansible.config.yml -vvvvv'
-                    sh 'ansible-playbook jenkins-docker.yml  -e @mgmt.ansible.config.yml -vvvvv'
+                    sh 'ansible-playbook jenkins-ssl.yml     -e @mgmt.ansible.config.yml'
+                }
+                dir ('ansible') {
+                    sh 'ansible-playbook jenkins-docker.yml  -e @mgmt.ansible.config.yml'
                 }
             }
         }
