@@ -1,6 +1,6 @@
-env = "stage"
-key_name = "jenkins-key-stage"
-public_subnet_cidr = "172.25.212.64/27"
+env                 = "stage"
+key_name            = "jenkins-key-stage"
+public_subnet_cidr  = "172.25.212.64/27"
 private_subnet_cidr = "172.25.212.96/27"
 
 #http://www.davidc.net/sites/default/subnets/subnets.html?network=172.25.212.0&mask=24&division=3.1

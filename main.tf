@@ -13,7 +13,7 @@ terraform {
 provider "aws" {
   region = "${var.aws_region}"
   assume_role {
-    role_arn     = "arn:aws:iam::130552128005:role/jenkins-assume-role-from-sandbox"
+    role_arn = "arn:aws:iam::${var.aws_account_no}:role/jenkins-assume-role-from-sandbox"
   }
 }
 
@@ -25,11 +25,11 @@ resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.main.id}"
 
   tags = {
-    Name = "${var.vpc_prefix}-${var.env}-igw"
-    Customer = "Qrious"
+    Name        = "${var.vpc_prefix}-${var.env}-igw"
+    Customer    = "Qrious"
     Environment = "${var.env}"
-    Owner = "sre@qrious.co.nz"
-    Project = "Qrious Jenkins CI"
+    Owner       = "sre@qrious.co.nz"
+    Project     = "Qrious Jenkins CI"
   }
 }
 
@@ -47,11 +47,11 @@ resource "aws_subnet" "public_subnet" {
   map_public_ip_on_launch = false
 
   tags = {
-    Name = "${var.vpc_prefix}-${var.env}-public-subnet"
-    Customer = "Qrious"
+    Name        = "${var.vpc_prefix}-${var.env}-public-subnet"
+    Customer    = "Qrious"
     Environment = "${var.env}"
-    Owner = "sre@qrious.co.nz"
-    Project = "Qrious Jenkins CI"
+    Owner       = "sre@qrious.co.nz"
+    Project     = "Qrious Jenkins CI"
   }
 }
 
@@ -61,11 +61,11 @@ resource "aws_subnet" "private_subnet" {
   cidr_block              = "${var.private_subnet_cidr}"
   map_public_ip_on_launch = false
   tags = {
-    Name = "${var.vpc_prefix}-${var.env}-private-subnet"
-    Customer = "Qrious"
-    Environment	= "${var.env}"
-    Owner = "sre@qrious.co.nz"
-    Project = "Qrious Jenkins CI"
+    Name        = "${var.vpc_prefix}-${var.env}-private-subnet"
+    Customer    = "Qrious"
+    Environment = "${var.env}"
+    Owner       = "sre@qrious.co.nz"
+    Project     = "Qrious Jenkins CI"
   }
 }
 
@@ -77,17 +77,17 @@ resource "aws_route_table" "public_route_table" {
     gateway_id = "${aws_internet_gateway.gw.id}"
   }
 
-#  route {
-#    cidr_block = "10.201.247.0/24"
-#    network_interface_id = "${data.aws_cloudformation_stack.aviatrix.outputs["AviatrixENIId"]}"
-#  }
+  #  route {
+  #    cidr_block = "10.201.247.0/24"
+  #    network_interface_id = "${data.aws_cloudformation_stack.aviatrix.outputs["AviatrixENIId"]}"
+  #  }
 
   tags = {
-    Name = "${var.vpc_prefix}-${var.env}-public-subnet-route-table"
-    Customer = "Qrious"
-    Environment	= "${var.env}"
-    Owner = "sre@qrious.co.nz"
-    Project = "Qrious Jenkins CI"
+    Name        = "${var.vpc_prefix}-${var.env}-public-subnet-route-table"
+    Customer    = "Qrious"
+    Environment = "${var.env}"
+    Owner       = "sre@qrious.co.nz"
+    Project     = "Qrious Jenkins CI"
   }
 
 }
@@ -101,11 +101,11 @@ resource "aws_nat_gateway" "nat_gw" {
   subnet_id     = "${aws_subnet.public_subnet.id}"
 
   tags = {
-    Name = "${var.vpc_prefix}-${var.env}-nat-gw"
-    Customer = "Qrious"
-    Environment	= "${var.env}"
-    Owner = "sre@qrious.co.nz"
-    Project = "Qrious Jenkins CI"
+    Name        = "${var.vpc_prefix}-${var.env}-nat-gw"
+    Customer    = "Qrious"
+    Environment = "${var.env}"
+    Owner       = "sre@qrious.co.nz"
+    Project     = "Qrious Jenkins CI"
   }
 }
 
@@ -113,21 +113,21 @@ resource "aws_nat_gateway" "nat_gw" {
 resource "aws_route_table" "private_route_table" {
   vpc_id = "${aws_vpc.main.id}"
   route {
-    cidr_block = "0.0.0.0/0"
+    cidr_block     = "0.0.0.0/0"
     nat_gateway_id = "${aws_nat_gateway.nat_gw.id}"
   }
 
-#  route {
-#    cidr_block = "10.201.247.0/24"
-#    network_interface_id = "${data.aws_cloudformation_stack.aviatrix.outputs["AviatrixENIId"]}"
-#  }
+  #  route {
+  #    cidr_block = "10.201.247.0/24"
+  #    network_interface_id = "${data.aws_cloudformation_stack.aviatrix.outputs["AviatrixENIId"]}"
+  #  }
 
   tags = {
-    Name = "${var.vpc_prefix}-${var.env}-private-subnet-route-table"
-    Customer = "Qrious"
-    Environment	= "prod"
-    Owner = "sre@qrious.co.nz"
-    Project = "Qrious Jenkins CI"
+    Name        = "${var.vpc_prefix}-${var.env}-private-subnet-route-table"
+    Customer    = "Qrious"
+    Environment = "prod"
+    Owner       = "sre@qrious.co.nz"
+    Project     = "Qrious Jenkins CI"
   }
 }
 resource "aws_route_table_association" "private_subnet_association" {
@@ -142,15 +142,23 @@ resource "aws_security_group" "master" {
   description = "Used in the terraform"
   vpc_id      = "${aws_vpc.main.id}"
 
-  # SSH access from anywhere
+  # SSH access from Spark Network Only
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["146.171.246.0/24", "146.171.254.96/32", "146.171.254.99/32", "203.96.123.0/24"]
   }
 
-  # HTTP access from the VPC
+  # HTTPS access from Spark Network Only
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["146.171.246.0/24", "146.171.254.96/32", "146.171.254.99/32", "203.96.123.0/24"]
+  }
+
+  # HTTP access from the VPC, only for Let's Encrypt to work for a short period.
   ingress {
     from_port   = 80
     to_port     = 80
@@ -158,13 +166,12 @@ resource "aws_security_group" "master" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # HTTPS access from the VPC
+  # HTTPS access from the Bitbucket
   ingress {
     from_port   = 443
-
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["18.205.93.0/25", "18.234.32.128/25", "13.52.5.0/25", "34.199.54.113/32", "34.232.25.90/32", "34.232.119.183/32", "34.236.25.177/32", "35.171.175.212/32", "52.54.90.98/32", "52.202.195.162/32", "52.203.14.55/32", "52.204.96.37/32", "34.218.156.209/32", "34.218.168.212/32", "52.41.219.63/32", "35.155.178.254/32", "35.160.177.10/32", "34.216.18.129/32"]
   }
 
   # outbound internet access
@@ -216,16 +223,16 @@ resource "aws_instance" "jenkins" {
   # We're going to launch into the same subnet as our ELB. In a production
   # environment it's more common to have a separate private subnet for
   # backend instances.
-  subnet_id = "${aws_subnet.public_subnet.id}"
+  subnet_id            = "${aws_subnet.public_subnet.id}"
   iam_instance_profile = "${aws_iam_instance_profile.master_instance_profile.id}"
 
   tags = {
-    Name = "${var.vpc_prefix}-${var.env}-jenkins-master"
-    Customer = "Qrious"
+    Name        = "${var.vpc_prefix}-${var.env}-jenkins-master"
+    Customer    = "Qrious"
     Environment = "${var.env}"
-    Owner = "sre@qrious.co.nz"
-    Project = "Qrious Jenkins CI"
-    Downtime = "default"
+    Owner       = "sre@qrious.co.nz"
+    Project     = "Qrious Jenkins CI"
+    Downtime    = "default"
   }
 
   user_data = <<DATA
@@ -247,9 +254,9 @@ resource "null_resource" "config" {
   # communicate with the resource (instance)
   connection {
     # The default username for our AMI
-    user = "admin"
-    agent = false
-    host = "${aws_eip.jenkins.public_ip}"
+    user        = "admin"
+    agent       = false
+    host        = "${aws_eip.jenkins.public_ip}"
     private_key = "${file(var.key_file_path)}"
   }
   depends_on = ["aws_eip_association.eip_assoc"]
@@ -264,7 +271,7 @@ resource "null_resource" "config" {
 }
 
 resource "local_file" "ansible-config" {
-    content = <<DATA
+  content  = <<DATA
 ---
 jenkins_public_ip: ${aws_eip.jenkins.public_ip}
 jenkins_dns_name: jenkins.qrious.co.nz
@@ -277,5 +284,5 @@ slave_private_key_file_path: ${var.key_file_path}
 slave_instance_profile_arn: ${aws_iam_instance_profile.slave_instance_profile.arn}
 
 DATA
-    filename = "${path.module}/ansible/${var.env}.ansible.config.yml"
+  filename = "${path.module}/ansible/${var.env}.ansible.config.yml"
 }

@@ -12,7 +12,7 @@ variable "key_name" {
 
 variable "key_file_path" {
   description = "Local file path for the private key"
-  default = "~/.ssh/id_rsa"
+  default     = "~/.ssh/id_rsa"
 }
 
 variable "aws_region" {
@@ -20,6 +20,10 @@ variable "aws_region" {
   default     = "ap-southeast-2"
 }
 
+variable "aws_account_no" {
+  description = "The AWS account to deploy the full infrastructure"
+  default     = "130552128005"
+}
 
 # Debian-9 Stretch Market place AMI  
 variable "aws_amis" {
@@ -30,12 +34,12 @@ variable "aws_amis" {
 
 variable "vpc_prefix" {
   description = "The name for all resources"
-  default = "jenkins-vpc"
+  default     = "jenkins-vpc"
 }
 
 variable "vpc_cidr" {
   description = "The cidr for VPC"
-  default = "172.25.212.0/24"
+  default     = "172.25.212.0/24"
 }
 
 variable "public_subnet_cidr" {
