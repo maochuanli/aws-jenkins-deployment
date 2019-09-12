@@ -4,7 +4,11 @@ jenkins:
   numExecutors: 0
   mode: NORMAL
   scmCheckoutRetryCount: 3
-
+  globalNodeProperties:
+  - envVars:
+      env:
+      - key: "DOCUMENTDB_PASSWORD"
+        value: "secret_password_anz_doc"
   securityRealm:
     local:
       allowsSignup: false
@@ -47,6 +51,8 @@ unclassified:
     dockerLabel: "docker"
     registry:
       credentialsId: "docker-id"
+  globalDefaultFlowDurabilityLevel:
+    durabilityHint: PERFORMANCE_OPTIMIZED      
   location:
     adminAddress: "sre.qrious@spark.co.nz"
     url: "https://{{jenkins_dns_name}}/"
@@ -57,3 +63,19 @@ unclassified:
     dockerLabel: "docker"
     registry:
       credentialsId: "docker-id"
+
+tool:
+  terraformInstallation:
+    installations:
+    - name: "terraform-latest"
+      properties:
+      - installSource:
+          installers:
+          - terraformInstaller:
+              id: "0.12.8-linux-amd64"
+    - name: "terraform-0.12.8"
+      properties:
+      - installSource:
+          installers:
+          - terraformInstaller:
+              id: "0.12.8-linux-amd64"

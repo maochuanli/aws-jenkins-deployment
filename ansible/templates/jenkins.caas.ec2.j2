@@ -18,11 +18,11 @@ jenkins:
         connectBySSHProcess: false
         connectionStrategy: PRIVATE_IP
         deleteRootOnTermination: false
-        description: "customize ami based on Amazon Linux"
+        description: "Jenkins Slave VM based on Debian9 Type T2Micro"
         ebsOptimized: false
         iamInstanceProfile: "{{slave_instance_profile_arn}}"
         idleTerminationMinutes: "30"
-        labelString: "ec2 docker debian debian9"
+        labelString: "ec2 docker debian debian9 T2Micro"
         maxTotalUses: -1
         mode: NORMAL
         monitoring: false
@@ -38,7 +38,38 @@ jenkins:
         useEphemeralDevices: false
         tags:
           - name: "Name"
-            value: "jenkins-slave"
+            value: "jenkins-slave-T2Micro"
+
+      - ami: "{{ slave_ami_id}}"
+        amiType:
+          unixData:
+            sshPort: "22"
+        associatePublicIp: false
+        connectBySSHProcess: false
+        connectionStrategy: PRIVATE_IP
+        deleteRootOnTermination: false
+        description: "Jenkins Slave VM based on	Debian9	Type T2Large"
+        ebsOptimized: false
+        iamInstanceProfile: "{{slave_instance_profile_arn}}"
+        idleTerminationMinutes: "30"
+        labelString: "ec2 docker debian debian9 T2Large"
+        maxTotalUses: -1
+        mode: NORMAL
+        monitoring: false
+        numExecutors: 5
+        remoteAdmin: "admin"
+        remoteFS: "/home/admin"
+        securityGroups: "{{  slave_security_group_name}}"
+        stopOnTerminate: false
+        subnetId: "{{ slave_subnet_id }}"
+        t2Unlimited: false
+        type: T2Large
+        useDedicatedTenancy: false
+        useEphemeralDevices: false
+        tags:
+          - name: "Name"
+            value: "jenkins-slave-T2Large"
+
       useInstanceProfileForCredentials: false
 
 

@@ -10,7 +10,6 @@
         groups:
           - jenkins
 
-
 - name: Run jenkins server inside docker
   hosts: jenkins
   gather_facts: true
@@ -89,6 +88,9 @@
         - install-plugin bitbucket
         - install-plugin configuration-as-code
         - install-plugin configuration-as-code-secret-ssm
+        - install-plugin terraform
+        - install-plugin pipeline-stage-view
+        - install-plugin ansicolor
         - restart
 
     - name: test web server 2
