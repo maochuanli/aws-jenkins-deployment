@@ -155,7 +155,7 @@ resource "aws_security_group" "master" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["13.210.31.135"]
+    cidr_blocks = ["13.210.31.135/32"]
   }
 
   # HTTPS access from Spark Network Only
