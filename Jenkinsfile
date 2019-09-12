@@ -28,12 +28,12 @@ pipeline {
 
         stage('Deploy with Terraform') {
             steps {
-                sh 'terraform init'
+                sh 'terraform init -no-color'
                 sh 'terraform workspace new mgmt-prod || true'
                 sh 'terraform workspace select mgmt-prod'
 //                sh 'terraform destroy --auto-approve -var-file=mgmt.tfvars'
-                sh 'terraform plan -out=terraform.out -var-file=mgmt.tfvars'
-                sh 'terraform apply --auto-approve -var-file=mgmt.tfvars'
+                sh 'terraform plan -out=terraform.out -var-file=mgmt.tfvars  -no-color'
+                sh 'terraform apply --auto-approve -var-file=mgmt.tfvars  -no-color'
                 archiveArtifacts artifacts: 'ansible/*.ansible.config.yml'
             }
         }

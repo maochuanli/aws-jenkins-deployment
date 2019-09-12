@@ -150,6 +150,14 @@ resource "aws_security_group" "master" {
     cidr_blocks = ["146.171.246.0/24", "146.171.254.96/32", "146.171.254.99/32", "203.96.123.0/24"]
   }
 
+  # SSH access from Sandbox NAT GW
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["13.210.31.135"]
+  }
+
   # HTTPS access from Spark Network Only
   ingress {
     from_port   = 443
