@@ -21,6 +21,7 @@ jenkins:
         description: "Jenkins Slave VM based on Debian9 Type T2Micro"
         ebsOptimized: false
         iamInstanceProfile: "{{slave_instance_profile_arn}}"
+        initScript: "mkdir /home/admin/tools"
         idleTerminationMinutes: "30"
         labelString: "ec2 docker debian debian9 T2Micro"
         maxTotalUses: -1
@@ -51,6 +52,7 @@ jenkins:
         description: "Jenkins Slave VM based on	Debian9	Type T2Large"
         ebsOptimized: false
         iamInstanceProfile: "{{slave_instance_profile_arn}}"
+        initScript: "mkdir /home/admin/tools"
         idleTerminationMinutes: "30"
         labelString: "ec2 docker debian debian9 T2Large"
         maxTotalUses: -1
