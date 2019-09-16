@@ -1,3 +1,4 @@
+
 - name: Create jenkins master group with it's public ip
   hosts: localhost
   tasks:
@@ -91,6 +92,7 @@
         - install-plugin configuration-as-code-secret-ssm
         - install-plugin terraform
         - install-plugin ansicolor
+        - install-plugin pipeline-utility-steps
         - restart
 
     - name: test web server 2
