@@ -27,11 +27,15 @@ pipeline {
         }
 
         stage('Deploy with Terraform') {
+            when{
+                not {
+                    fileExists('__DESTROY__')
+                }
+            }
             steps {
                 sh 'terraform init -no-color'
                 sh 'terraform workspace new mgmt-prod || true'
                 sh 'terraform workspace select mgmt-prod'
-//                sh 'terraform destroy --auto-approve -var-file=mgmt.tfvars'
                 sh 'terraform plan -out=terraform.out -var-file=mgmt.tfvars  -no-color'
                 sh 'terraform apply --auto-approve -var-file=mgmt.tfvars  -no-color'
                 archiveArtifacts artifacts: 'ansible/*.ansible.config.yml'
@@ -39,15 +43,32 @@ pipeline {
         }
 
         stage('Configure Jenkins Server'){
+            when{
+                not {
+                    fileExists('__DESTROY__')
+                }
+            }
             steps {
-	    	echo "Run ansible playbooks to configure the jenkins server"
-		sh 'cd ansible; ansible-playbook jenkins-route53.yml -e @mgmt.ansible.config.yml'
+                echo "Run ansible playbooks to configure the jenkins server"
+                sh 'cd ansible; ansible-playbook jenkins-route53.yml -e @mgmt.ansible.config.yml'
                 dir ('ansible') {
                     sh 'ansible-playbook jenkins-ssl.yml     -e @mgmt.ansible.config.yml'
                 }
                 dir ('ansible') {
                     sh 'ansible-playbook jenkins-docker.yml  -e @mgmt.ansible.config.yml'
                 }
+            }
+        }
+
+
+        stage('Destroy Everything'){
+            when{
+                fileExists('__DESTROY__')
+            }
+            steps {
+                sh 'terraform init -no-color'
+                sh 'terraform workspace select mgmt-prod'
+                sh 'terraform destroy --auto-approve -var-file=mgmt.tfvars'
             }
         }
     }
