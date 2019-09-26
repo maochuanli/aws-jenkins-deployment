@@ -1,0 +1,11 @@
+---
+jenkins_public_ip: 3.106.22.0
+jenkins_dns_name: jenkins.qrious.co.nz
+reset_docker: true
+#Default Debian custom image
+slave_ami_id: ami-0019173738c29be04
+slave_subnet_id: subnet-04fb3e295c2680350
+slave_security_group_name: jenkins-slave-security-group-mgmt
+slave_private_key_file_path: ~/.ssh/id_rsa
+slave_instance_profile_arn: arn:aws:iam::130552128005:instance-profile/slave_instance_profile_mgmt
+

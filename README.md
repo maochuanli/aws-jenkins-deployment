@@ -10,11 +10,13 @@ This project is to automatically set up jenkins server
 
 ### How do I execute ###
 
-* create 2 AWS profiles: sandbox and mgmt
-* create VPC with project: git@bitbucket.org:qriousnz/ansible-pb-aviatrix-peering.git
 * > terraform init
-* > terraform plan -var-file=prod.tfvars
-* > terraform apply -var-file=prod.tfvars
-* > cd ansible/
-* > ansible-playbook  jenkins-ssl.yml -e @prod.ansible.config.yml -vvv
-* > ansible-playbook  jenkins-docker.yml -e @prod.ansible.config.yml -vvv
+* > terraform workspace select mgmt-prod
+* > terraform plan -out=terraform.out -var-file=mgmt.tfvars -var=public_key_path=~/.ssh/jenkins_id_rsa.pub
+* > terraform apply terraform.out
+* > 
+* > cd ansible
+* > 
+* > ansible-playbook      	      	      	  jenkins-route53.yml -e @mgmt.ansible.config.yml
+* > ansible-playbook --key-file ~/jenkins_id_rsa  jenkins-ssl.yml -e @mgmt.ansible.config.yml
+* > ansible-playbook --key-file ~/jenkins_id_rsa  jenkins-docker.yml -e @mgmt.ansible.config.yml
