@@ -6,11 +6,13 @@ pipeline {
     environment { 
         JENKINS_PUB_KEY = credentials('jenkins-public-key-file')
         JENKINS_PRI_KEY = credentials('jenkins-private-key-file')
+        DESTROY = "${fileExists('__DESTROY__')}"
     }
 
     stages {
         stage('Prepare public private key pair'){
             steps {
+                echo "To destory ? [$DESTROY]"
                 sh 'git clean -fdx'
                 sh "mkdir ~/.ssh/ || true"
                 sh "mkdir -p ~/.local/bin"
@@ -28,9 +30,7 @@ pipeline {
 
         stage('Deploy with Terraform') {
             when{
-                expression{
-                    not {fileExists '__DESTROY__'}
-                }
+                environment ignoreCase: true, name: 'DESTROY', value: 'true'
             }
             steps {
                 sh 'terraform init -no-color'
@@ -44,9 +44,7 @@ pipeline {
 
         stage('Configure Jenkins Server'){
             when{
-                expression{
-                    not {fileExists '__DESTROY__'}
-                }                
+                environment ignoreCase: true, name: 'DESTROY', value: 'true'
             }
             steps {
                 echo "Run ansible playbooks to configure the jenkins server"
@@ -63,9 +61,7 @@ pipeline {
 
         stage('Destroy Everything'){
             when{
-                expression{
-                    fileExists '__DESTROY__'
-                }
+                environment ignoreCase: true, name: 'DESTROY', value: 'false'
             }
             steps {
                 sh 'terraform init -no-color'
