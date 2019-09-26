@@ -45,8 +45,8 @@
         name: jenkins
         pull: yes
         privileged: yes
-#        image: jenkins/jenkins:lts
-        image: jenkins/jenkins:2.176.4
+        image: jenkins/jenkins:lts
+#        image: jenkins/jenkins:2.176.4
         state: started
         restart_policy: always
         ports: 
@@ -90,10 +90,7 @@
       shell: |
         docker exec -it jenkins java -jar /var/jenkins_home/war/WEB-INF/jenkins-cli.jar -s http://localhost:8080 -auth @/var/jenkins_home/admin.password  {{ item }}
       loop:
-#        - install-plugin file:///var/jenkins_home/ec2.hpi
-#        - install-plugin amazon-ecs
-#        - install-plugin aws-java-sdk
-#        - install-plugin ec2
+        - install-plugin ec2
         - install-plugin workflow-aggregator
         - install-plugin blueocean
         - install-plugin bitbucket
@@ -102,7 +99,15 @@
         - install-plugin terraform
         - install-plugin ansicolor
         - install-plugin pipeline-utility-steps
-        - restart
+
+    - name: download ec2 plugin 1.45
+      shell: |
+        rm -f /var/jenkins_home/plugins/ec2.jpi
+        cp /var/jenkins_home/ec2.hpi /var/jenkins_home/plugins/ec2.jpi 
+
+    - name: Restart Jenkins
+      shell: |
+        docker exec -it jenkins java -jar /var/jenkins_home/war/WEB-INF/jenkins-cli.jar -s http://localhost:8080 -auth @/var/jenkins_home/admin.password restart
 
     - name: test web server 2
       command:
