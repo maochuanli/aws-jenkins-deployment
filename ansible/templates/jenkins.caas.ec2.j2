@@ -18,12 +18,12 @@ jenkins:
         connectBySSHProcess: false
         connectionStrategy: PRIVATE_IP
         deleteRootOnTermination: false
-        description: "Jenkins Slave VM based on Debian9 Type T2Micro"
+        description: "Jenkins Slave Debian9 Type T2Micro"
         ebsOptimized: false
         iamInstanceProfile: "{{slave_instance_profile_arn}}"
         initScript: "mkdir /home/admin/tools"
         idleTerminationMinutes: "30"
-        labelString: "ec2 docker debian debian9 T2Micro"
+        labelString: "ec2 docker debian debian9 micro T2Micro"
         maxTotalUses: -1
         mode: NORMAL
         monitoring: false
@@ -49,12 +49,12 @@ jenkins:
         connectBySSHProcess: false
         connectionStrategy: PRIVATE_IP
         deleteRootOnTermination: false
-        description: "Jenkins Slave VM based on	Debian9	Type T2Large"
+        description: "Jenkins Slave Debian9 Type T2Large"
         ebsOptimized: false
         iamInstanceProfile: "{{slave_instance_profile_arn}}"
         initScript: "mkdir /home/admin/tools"
         idleTerminationMinutes: "30"
-        labelString: "ec2 docker debian debian9 T2Large"
+        labelString: "ec2 docker debian debian9 large T2Large"
         maxTotalUses: -1
         mode: NORMAL
         monitoring: false

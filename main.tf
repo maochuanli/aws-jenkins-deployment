@@ -157,6 +157,14 @@ resource "aws_security_group" "master" {
     cidr_blocks = ["146.171.246.0/24", "146.171.254.96/32", "146.171.254.99/32", "203.96.123.0/24", "146.171.247.81/32"]
   }
 
+  # SSH access from Mao Home
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["122.60.1.67/32"]
+  }
+
   # SSH access from Sandbox NAT GW
   ingress {
     from_port   = 22

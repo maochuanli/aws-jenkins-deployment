@@ -57,8 +57,6 @@
         env:
           JENKINS_DNS_NAME: "{{jenkins_dns_name}}"
 
-#          JAVA_OPTS: -Djenkins.install.runSetupWizard=true
-
     - name: Waits for port 8080
       wait_for:
         host: 127.0.0.1
@@ -72,7 +70,7 @@
       shell:
         echo "admin:$(cat /var/jenkins_home/secrets/initialAdminPassword)" > /var/jenkins_home/admin.password
 
-    - name: test web server
+    - name: test web server - 1
       command:
         docker exec -it jenkins java -jar /var/jenkins_home/war/WEB-INF/jenkins-cli.jar -s http://localhost:8080 -auth @/var/jenkins_home/admin.password who-am-i
 
