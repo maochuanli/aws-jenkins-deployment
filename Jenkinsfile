@@ -30,7 +30,7 @@ pipeline {
 
         stage('Deploy with Terraform') {
             when{
-                environment ignoreCase: true, name: 'DESTROY', value: 'true'
+                environment ignoreCase: true, name: 'DESTROY', value: 'false'
             }
             steps {
                 sh 'terraform init -no-color'
@@ -44,7 +44,7 @@ pipeline {
 
         stage('Configure Jenkins Server'){
             when{
-                environment ignoreCase: true, name: 'DESTROY', value: 'true'
+                environment ignoreCase: true, name: 'DESTROY', value: 'false'
             }
             steps {
                 echo "Run ansible playbooks to configure the jenkins server"
@@ -61,7 +61,7 @@ pipeline {
 
         stage('Destroy Everything'){
             when{
-                environment ignoreCase: true, name: 'DESTROY', value: 'false'
+                environment ignoreCase: true, name: 'DESTROY', value: 'true'
             }
             steps {
                 sh 'terraform init -no-color'
