@@ -19,6 +19,13 @@ provider "aws" {
 
 resource "aws_vpc" "main" {
   cidr_block = "${var.vpc_cidr}"
+    tags = {
+    Name        = "${var.vpc_prefix}-${var.env}-vpc"
+    Customer    = "Qrious"
+    Environment = "${var.env}"
+    Owner       = "sre@qrious.co.nz"
+    Project     = "Qrious Jenkins CI"
+  }
 }
 
 resource "aws_internet_gateway" "gw" {
@@ -202,7 +209,7 @@ resource "aws_security_group" "slave" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["172.25.0.0/16"]
   }
 
   # outbound internet access

@@ -43,6 +43,7 @@
     - name: run docker with jenkins/jenkins:lts image
       docker_container:
         name: jenkins
+        pull: yes
         privileged: yes
         image: jenkins/jenkins:lts
         state: started
@@ -83,8 +84,8 @@
       shell: |
         docker exec -it jenkins java -jar /var/jenkins_home/war/WEB-INF/jenkins-cli.jar -s http://localhost:8080 -auth @/var/jenkins_home/admin.password  {{ item }}
       loop:
-        - install-plugin ec2
-        - install-plugin amazon-ecs
+        - install-plugin ec2:1.45
+#        - install-plugin amazon-ecs
         - install-plugin workflow-aggregator
         - install-plugin blueocean
         - install-plugin bitbucket
