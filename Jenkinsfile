@@ -28,9 +28,9 @@ pipeline {
 
         stage('Deploy with Terraform') {
             when{
-                not {
+                not
                     fileExists('__DESTROY__')
-                }
+                
             }
             steps {
                 sh 'terraform init -no-color'
@@ -44,9 +44,9 @@ pipeline {
 
         stage('Configure Jenkins Server'){
             when{
-                not {
+                not 
                     fileExists('__DESTROY__')
-                }
+                
             }
             steps {
                 echo "Run ansible playbooks to configure the jenkins server"
