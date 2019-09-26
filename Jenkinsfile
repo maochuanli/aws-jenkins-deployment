@@ -63,7 +63,7 @@ pipeline {
 
         stage('Destroy Everything'){
             when{
-                fileExists('__DESTROY__')
+                anyOf{ fileExists('__DESTROY__') }
             }
             steps {
                 sh 'terraform init -no-color'
