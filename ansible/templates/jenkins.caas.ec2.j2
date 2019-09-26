@@ -29,7 +29,14 @@ jenkins:
         monitoring: false
         numExecutors: 3
         remoteAdmin: "admin"
-        remoteFS: "/home/admin"
+        remoteFS: "/jenkins"
+	customDeviceMapping: "/dev/xvdb=:50"
+	initScript: |+
+          sudo /sbin/mkfs.ext4 /dev/xvdb
+          sudo mkdir /jenkins
+          sudo mount /dev/xvdb /jenkins
+          sudo chown admin /jenkins
+          mkdir /jenkins/tools
         securityGroups: "{{  slave_security_group_name}}"
         stopOnTerminate: false
         subnetId: "{{ slave_subnet_id }}"
@@ -60,7 +67,14 @@ jenkins:
         monitoring: false
         numExecutors: 10
         remoteAdmin: "admin"
-        remoteFS: "/home/admin"
+	remoteFS: "/jenkins"
+        customDeviceMapping: "/dev/xvdb=:60"
+        initScript: |+
+          sudo /sbin/mkfs.ext4 /dev/xvdb
+          sudo mkdir /jenkins
+          sudo mount /dev/xvdb /jenkins
+          sudo chown admin /jenkins
+          mkdir /jenkins/tools
         securityGroups: "{{  slave_security_group_name}}"
         stopOnTerminate: false
         subnetId: "{{ slave_subnet_id }}"
